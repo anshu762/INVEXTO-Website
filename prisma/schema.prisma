@@ -42,12 +42,14 @@ model User {
 }
 
 model Stock {
-  id        String  @id @default(uuid()) @db.Uuid
-  symbol    String  @unique
-  name      String
-  sector    String
-  faceValue Decimal @db.Decimal(10, 2)
-  isActive  Boolean @default(true)
+  id               String  @id @default(uuid()) @db.Uuid
+  symbol           String  @unique
+  name             String
+  sector           String
+  faceValue        Decimal @db.Decimal(10, 2)
+  isActive         Boolean @default(true)
+  sharesOutstanding BigInt @default(0)
+  keyStats         Json      @default("{}")
 
   holdings      Holding[]
   stockPrices   StockPrice[]

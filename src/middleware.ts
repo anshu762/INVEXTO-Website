@@ -1,0 +1,25 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+const protectedRoutes = ["/portfolio", "/stocks", "/simulate", "/tournament"];
+
+export function middleware(request: NextRequest) {
+  const token = request.cookies.get("invexto_token")?.value;
+  const { pathname } = request.nextUrl;
+
+  if (
+    protectedRoutes.some((route) => pathname === route || pathname.startsWith(route + "/"))
+  ) {
+    if (!token) {
+      const loginUrl = new URL("/", request.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/portfolio/:path*", "/stocks/:path*", "/simulate/:path*", "/tournament/:path*"],
+};

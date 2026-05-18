@@ -2,35 +2,52 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSession } from "@/src/lib/session";
+import { fetchQuote } from "@/src/lib/yahoo-finance";
+import { getStockBySymbol } from "@/src/data/nse-stocks";
+
+async function ensureStockRecord(symbol: string) {
+  const existing = await prisma.stock.findUnique({ where: { symbol } });
+  if (existing) return existing;
+
+  const info = getStockBySymbol(symbol);
+  return prisma.stock.create({
+    data: {
+      symbol,
+      name: info?.name ?? symbol,
+      sector: info?.sector ?? "Other",
+      faceValue: 1,
+      sharesOutstanding: BigInt(0),
+      keyStats: {},
+    },
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
     const user = await requireSession(request);
-    const { stockId, quantity } = await request.json();
+    const { symbol, quantity } = await request.json();
 
-    if (!stockId || !quantity || quantity <= 0) {
+    if (!symbol || !quantity || quantity <= 0) {
       return NextResponse.json(
-        { success: false, error: "Invalid stock or quantity" },
+        { success: false, error: "Invalid symbol or quantity" },
         { status: 400 }
       );
     }
 
-    const stock = await prisma.stock.findUnique({
-      where: { id: stockId },
-      include: {
-        stockPrices: { orderBy: { timestamp: "desc" }, take: 1 },
-      },
-    });
+    const quote = await fetchQuote(symbol);
+    const currentPrice = quote?.regularMarketPrice
+      ? Number(quote.regularMarketPrice)
+      : null;
 
-    if (!stock || !stock.stockPrices[0]) {
+    if (!currentPrice) {
       return NextResponse.json(
-        { success: false, error: "Stock not found or no price data" },
-        { status: 404 }
+        { success: false, error: "Could not fetch current price" },
+        { status: 400 }
       );
     }
 
-    const currentPrice = Number(stock.stockPrices[0].price);
     const total = currentPrice * quantity;
+    const stockRecord = await ensureStockRecord(symbol);
 
     const portfolio = await prisma.portfolio.findFirst({
       where: { userId: user.id, mode: "regular" },
@@ -61,7 +78,7 @@ export async function POST(request: NextRequest) {
         where: {
           portfolioId_stockId: {
             portfolioId: portfolio.id,
-            stockId: stock.id,
+            stockId: stockRecord.id,
           },
         },
       });
@@ -69,7 +86,8 @@ export async function POST(request: NextRequest) {
       if (existing) {
         const oldQty = existing.quantity;
         const oldAvg = Number(existing.avgBuyPrice);
-        const newAvg = (oldAvg * oldQty + currentPrice * quantity) / (oldQty + quantity);
+        const newAvg =
+          (oldAvg * oldQty + currentPrice * quantity) / (oldQty + quantity);
         await tx.holding.update({
           where: { id: existing.id },
           data: {
@@ -81,7 +99,7 @@ export async function POST(request: NextRequest) {
         await tx.holding.create({
           data: {
             portfolioId: portfolio.id,
-            stockId: stock.id,
+            stockId: stockRecord.id,
             quantity,
             avgBuyPrice: currentPrice,
           },
@@ -91,7 +109,7 @@ export async function POST(request: NextRequest) {
       const txn = await tx.transaction.create({
         data: {
           portfolioId: portfolio.id,
-          stockId: stock.id,
+          stockId: stockRecord.id,
           type: "buy",
           quantity,
           price: currentPrice,
@@ -121,3 +139,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

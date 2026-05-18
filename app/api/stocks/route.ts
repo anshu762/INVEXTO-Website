@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/src/lib/prisma";
+import { nseStocks, getSectors, getStockBySymbol } from "@/src/data/nse-stocks";
+import { fetchQuotes, mapQuoteToStockWithPrice, searchStocks } from "@/src/lib/yahoo-finance";
 import type { StockWithPrice } from "@/src/types";
 
 export async function GET(request: Request) {
@@ -7,47 +8,58 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const sector = searchParams.get("sector");
     const sort = searchParams.get("sort") || "symbol";
+    const searchQ = searchParams.get("q");
 
-    const stocksPromise = prisma.stock.findMany({
-      where: sector && sector !== "All"
-        ? { sector, isActive: true }
-        : { isActive: true },
-      include: {
-        stockPrices: {
-          orderBy: { timestamp: "desc" },
-          take: 2,
-        },
-      },
-    });
+    if (searchQ) {
+      const results = await searchStocks(searchQ);
+      const symbols = results.map((r: any) => r.symbol);
+      const quotes = await fetchQuotes(symbols);
+      const stocks: StockWithPrice[] = results.map((r: any) => {
+        const q = quotes[r.symbol];
+        if (q) return mapQuoteToStockWithPrice(q, { name: r.name, sector: r.sector });
+        return {
+          id: r.symbol,
+          symbol: r.symbol,
+          name: r.name,
+          sector: r.sector,
+          faceValue: 0,
+          isActive: true,
+          sharesOutstanding: 0,
+          currentPrice: 0,
+          previousClose: 0,
+          changePercent: 0,
+          marketCap: 0,
+          volume: 0,
+          lastUpdated: new Date().toISOString(),
+        };
+      });
+      return NextResponse.json({ success: true, data: stocks });
+    }
 
-    const stocks = await stocksPromise;
+    let filtered = sector && sector !== "All"
+      ? nseStocks.filter((s) => s.sector === sector)
+      : nseStocks;
 
-    const data: StockWithPrice[] = stocks.map((stock) => {
-      const [latest, previous] = stock.stockPrices;
-      const currentPrice = latest ? Number(latest.price) : 0;
-      const previousClose = previous ? Number(previous.price) : currentPrice;
-      const changePercent =
-        previousClose > 0
-          ? ((currentPrice - previousClose) / previousClose) * 100
-          : 0;
-      const sharesOutstanding = Number(stock.sharesOutstanding);
-      const marketCap = currentPrice * sharesOutstanding;
-      const volume = latest ? Number(latest.volume) : 0;
+    const symbols = filtered.map((s) => s.symbol);
+    const quotes = await fetchQuotes(symbols);
 
+    const data: StockWithPrice[] = filtered.map((s) => {
+      const q = quotes[s.symbol];
+      if (q) return mapQuoteToStockWithPrice(q, s);
       return {
-        id: stock.id,
-        symbol: stock.symbol,
-        name: stock.name,
-        sector: stock.sector,
-        faceValue: Number(stock.faceValue),
-        isActive: stock.isActive,
-        sharesOutstanding,
-        currentPrice,
-        previousClose,
-        changePercent,
-        marketCap,
-        volume,
-        lastUpdated: latest ? latest.timestamp.toISOString() : new Date().toISOString(),
+        id: s.symbol,
+        symbol: s.symbol,
+        name: s.name,
+        sector: s.sector,
+        faceValue: 0,
+        isActive: true,
+        sharesOutstanding: 0,
+        currentPrice: 0,
+        previousClose: 0,
+        changePercent: 0,
+        marketCap: 0,
+        volume: 0,
+        lastUpdated: new Date().toISOString(),
       };
     });
 

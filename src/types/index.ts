@@ -157,20 +157,19 @@ export interface SimState {
   totalDays: number;
   eventName: string;
   eventId: string;
-  basePrices: Record<string, number>;
   stocks: { symbol: string; name: string; sector: string }[];
-  multipliers: Record<string, number[]>;
+  priceHistory: Record<string, number[]>;
   cashBalance: number;
   holdings: Record<string, { qty: number; avgBuyPrice: number }>;
   transactions: SimTransaction[];
   startDate: string;
+  valueHistory: number[];
 }
 
 export interface SimStartData {
   event: SimEvent;
   stocks: { symbol: string; name: string; sector: string }[];
-  basePrices: Record<string, number>;
-  multipliers: Record<string, number[]>;
+  priceHistory: Record<string, number[]>;
   startingCash: number;
 }
 

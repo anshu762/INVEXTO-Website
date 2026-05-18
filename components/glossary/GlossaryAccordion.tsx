@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search } from "lucide-react";
+import { Search, BookOpen, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Accordion,
@@ -29,60 +29,69 @@ export function GlossaryAccordion() {
   }, [search, category]);
 
   return (
-    <div className="space-y-5">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search glossary terms..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="bg-emerald-900/30 pl-9"
-        />
+    <div className="space-y-6">
+      {/* Search & Filter bar */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1">
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/60" />
+          <Input
+            placeholder="Search glossary terms..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-11 rounded-xl border-emerald-800/25 bg-emerald-900/20 pl-10 text-sm placeholder:text-muted-foreground/40 focus:border-emerald-600/50 focus:ring-emerald-600/20"
+          />
+        </div>
+        <div className="flex gap-1.5 rounded-xl border border-emerald-800/20 bg-emerald-900/10 p-1">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setCategory(cat)}
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-medium transition-all ${
+                category === cat
+                  ? "bg-amber-500 text-emerald-950 shadow-sm shadow-amber-900/30"
+                  : "text-emerald-300/60 hover:text-emerald-300/90"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setCategory(cat)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === cat
-                ? "bg-amber-500 text-emerald-950"
-                : "bg-emerald-800/30 text-emerald-300/80 hover:bg-emerald-800/50"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
+      {/* Terms */}
       {filtered.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          No terms match your search
-        </p>
+        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-emerald-800/20 py-12">
+          <BookOpen className="h-8 w-8 text-muted-foreground/30" />
+          <p className="text-sm text-muted-foreground/60">No terms match your search</p>
+        </div>
       ) : (
-        <Accordion type="single" collapsible className="space-y-2">
+        <Accordion type="single" collapsible className="space-y-2.5">
           {filtered.map((term, i) => (
             <AccordionItem
               key={term.term}
               value={`item-${i}`}
-              className="rounded-lg border border-emerald-800/30 bg-emerald-900/20 px-4"
+              className="group rounded-xl border border-emerald-800/20 bg-gradient-to-br from-emerald-900/20 to-emerald-950/20 px-5 transition-all duration-200 hover:border-emerald-700/30 hover:shadow-sm hover:shadow-emerald-900/10 data-[state=open]:border-emerald-700/30"
             >
-              <AccordionTrigger className="py-3 text-sm font-medium text-foreground hover:text-amber-400 transition-colors no-underline hover:no-underline [&[data-state=open]>svg]:text-amber-400">
-                <span className="flex items-center gap-2">
-                  <span className="text-lg">{term.emoji}</span>
-                  {term.term}
+              <AccordionTrigger className="py-4 text-sm font-medium text-foreground/90 hover:text-amber-400 no-underline hover:no-underline transition-all [&[data-state=open]>svg]:text-amber-400 [&[data-state=open]]:text-amber-400">
+                <span className="flex items-center gap-3">
+                  <span className="flex size-8 items-center justify-center rounded-lg bg-emerald-800/30 text-base transition-transform group-hover:scale-110">
+                    {term.emoji}
+                  </span>
+                  <span>{term.term}</span>
                 </span>
               </AccordionTrigger>
-              <AccordionContent className="space-y-3 pb-4 text-sm">
-                <p className="text-muted-foreground leading-relaxed">
+              <AccordionContent className="space-y-4 pb-5 text-sm">
+                <p className="leading-relaxed text-muted-foreground/90">
                   {term.definition}
                 </p>
-                <div className="rounded-lg border border-emerald-800/20 bg-emerald-900/30 p-3">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-400/80">
-                    How to use
-                  </span>
-                  <p className="mt-1 text-muted-foreground/90 leading-relaxed">
+                <div className="rounded-xl border border-emerald-800/15 bg-emerald-950/30 p-4">
+                  <div className="mb-1.5 flex items-center gap-1.5">
+                    <ChevronRight className="h-3 w-3 text-amber-400/70" />
+                    <span className="text-[10px] font-semibold uppercase tracking-widest text-amber-400/70">
+                      Pro Tip
+                    </span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-muted-foreground/80">
                     {term.howToUse}
                   </p>
                 </div>

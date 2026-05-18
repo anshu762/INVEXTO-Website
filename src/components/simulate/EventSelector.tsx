@@ -1,11 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { TrendingUp, TrendingDown, Clock, Gauge, AlertTriangle } from "lucide-react";
 import type { SimEvent } from "@/src/types";
 import { apiGet } from "@/src/lib/api";
+import { Navbar } from "@/components/layout/Navbar";
 
 interface Props {
   onSelect: (eventId: string) => void;
+}
+
+const difficultyConfig: Record<string, { label: string; color: string; dots: number }> = {
+  easy: { label: "Easy", color: "text-green-400", dots: 1 },
+  medium: { label: "Medium", color: "text-amber-400", dots: 2 },
+  hard: { label: "Hard", color: "text-red-400", dots: 3 },
+};
+
+function getDifficulty(days: number): string {
+  if (days <= 10) return "easy";
+  if (days <= 30) return "medium";
+  return "hard";
 }
 
 export default function EventSelector({ onSelect }: Props) {
@@ -26,96 +40,166 @@ export default function EventSelector({ onSelect }: Props) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="size-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
-      </div>
+      <>
+        <Navbar />
+        <div className="flex min-h-[80vh] items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="size-10 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+            <p className="text-sm text-gray-500">Loading scenarios...</p>
+          </div>
+        </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-lg bg-red-900/20 p-6 text-center text-red-400">
-        {error}
-      </div>
+      <>
+        <Navbar />
+        <div className="flex min-h-[80vh] items-center justify-center px-4">
+          <div className="max-w-md rounded-2xl border border-red-800/40 bg-red-950/30 p-8 text-center">
+            <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-red-400" />
+            <p className="text-red-400">{error}</p>
+          </div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div>
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-white">Market Simulation</h1>
-        <p className="mt-2 text-gray-400">
-          Select a historical event and trade through it in real-time
-        </p>
+    <>
+      <Navbar />
+      <div className="mx-auto max-w-6xl px-4 py-12">
+        <div className="mb-12 text-center">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-800/40 bg-emerald-950/30 px-4 py-1.5">
+            <TrendingUp className="h-4 w-4 text-emerald-400" />
+            <span className="text-xs font-medium text-emerald-300">SIMULATION MODE</span>
+          </div>
+          <h1 className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-4xl font-bold text-transparent sm:text-5xl">
+            Market Simulator
+          </h1>
+          <p className="mt-3 text-base text-gray-500">
+            Pick a historical event and trade through it with virtual cash. Your decisions, your P&amp;L.
+          </p>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {events.map((event) => {
+            const diff = getDifficulty(event.durationDays);
+            const cfg = difficultyConfig[diff];
+            const isCrash = event.type === "crash";
+            return (
+              <button
+                key={event.id}
+                onClick={() => setConfirmId(event.id)}
+                className={`group relative overflow-hidden rounded-2xl border p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${
+                  isCrash
+                    ? "border-red-800/30 bg-gradient-to-br from-red-950/40 to-gray-900 hover:border-red-500/50 hover:shadow-red-900/20"
+                    : "border-emerald-800/30 bg-gradient-to-br from-emerald-950/40 to-gray-900 hover:border-emerald-500/50 hover:shadow-emerald-900/20"
+                }`}
+              >
+                <div className="absolute right-0 top-0 opacity-[0.03]">
+                  {isCrash ? (
+                    <TrendingDown className="h-32 w-32 text-red-500" />
+                  ) : (
+                    <TrendingUp className="h-32 w-32 text-emerald-500" />
+                  )}
+                </div>
+
+                <div className="relative">
+                  <div className="mb-3 flex items-center justify-between">
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+                        isCrash
+                          ? "bg-red-900/40 text-red-300"
+                          : "bg-emerald-900/40 text-emerald-300"
+                      }`}
+                    >
+                      {isCrash ? (
+                        <TrendingDown className="h-3 w-3" />
+                      ) : (
+                        <TrendingUp className="h-3 w-3" />
+                      )}
+                      {isCrash ? "MARKET CRASH" : "BULL RALLY"}
+                    </span>
+
+                    <div className="flex items-center gap-0.5" title={`${cfg.label} difficulty`}>
+                      {[1, 2, 3].map((i) => (
+                        <div
+                          key={i}
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            i <= cfg.dots ? cfg.color : "bg-gray-700"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <h3 className="mb-1.5 text-lg font-bold text-white group-hover:text-emerald-300 transition-colors">
+                    {event.name}
+                  </h3>
+
+                  <p className="mb-4 text-sm leading-relaxed text-gray-400 line-clamp-2">
+                    {event.description}
+                  </p>
+
+                  <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {event.durationDays} days
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Gauge className="h-3 w-3" />
+                      {cfg.label}
+                    </span>
+                    <span>
+                      {new Date(event.startRealDate).toLocaleDateString("en-IN", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {confirmId && (
-        <div className="mb-6 rounded-lg border border-amber-700 bg-amber-900/20 p-4 text-center">
-          <p className="mb-3 text-amber-300">
-            This simulation uses a fresh ₹1,00,000 balance. Your real portfolio
-            is safe.
-          </p>
-          <div className="flex items-center justify-center gap-3">
-            <button
-              onClick={() => {
-                setConfirmId(null);
-                onSelect(confirmId);
-              }}
-              className="rounded-lg bg-emerald-600 px-6 py-2 font-medium text-white hover:bg-emerald-500"
-            >
-              Start Simulation
-            </button>
-            <button
-              onClick={() => setConfirmId(null)}
-              className="rounded-lg border border-gray-600 px-6 py-2 font-medium text-gray-300 hover:bg-gray-800"
-            >
-              Cancel
-            </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl border border-amber-800/40 bg-gray-900 p-8 text-center shadow-2xl animate-slide-up">
+            <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-amber-900/30">
+              <AlertTriangle className="h-7 w-7 text-amber-400" />
+            </div>
+            <h2 className="mb-2 text-xl font-bold text-white">Start Simulation?</h2>
+            <p className="mb-2 text-sm text-gray-400">
+              You&apos;ll begin with a fresh <span className="font-semibold text-emerald-400">₹1,00,000</span> virtual balance.
+            </p>
+            <p className="mb-6 text-xs text-gray-500">
+              Your real portfolio and balance will not be affected.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setConfirmId(null);
+                  onSelect(confirmId);
+                }}
+                className="flex-1 rounded-xl bg-emerald-600 py-3 font-semibold text-white transition hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-900/30"
+              >
+                Start
+              </button>
+              <button
+                onClick={() => setConfirmId(null)}
+                className="flex-1 rounded-xl border border-gray-700 py-3 font-semibold text-gray-300 transition hover:bg-gray-800"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {events.map((event) => (
-          <button
-            key={event.id}
-            onClick={() => setConfirmId(event.id)}
-            className="group rounded-xl border border-gray-700 bg-gray-900 p-5 text-left transition hover:border-emerald-600 hover:bg-gray-800"
-          >
-            <div className="mb-2 flex items-center justify-between">
-              <span
-                className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                  event.type === "crash"
-                    ? "bg-red-900/40 text-red-400"
-                    : "bg-green-900/40 text-green-400"
-                }`}
-              >
-                {event.type === "crash" ? "CRASH" : "RALLY"}
-              </span>
-              <span className="text-xs text-gray-500">
-                {event.durationDays} days
-              </span>
-            </div>
-            <h3 className="text-lg font-semibold text-white group-hover:text-emerald-400">
-              {event.name}
-            </h3>
-            <p className="mt-1 text-xs text-gray-500">
-              {new Date(event.startRealDate).toLocaleDateString("en-IN", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}{" "}
-              –{" "}
-              {new Date(event.endRealDate).toLocaleDateString("en-IN", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </p>
-            <p className="mt-2 text-sm text-gray-400">{event.description}</p>
-          </button>
-        ))}
-      </div>
-    </div>
+    </>
   );
 }

@@ -25,10 +25,9 @@ export default function PortfolioPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"buy" | "sell">("buy");
   const [modalStock, setModalStock] = useState<{
-    stockId: string;
     symbol: string;
     name: string;
-  }>({ stockId: "", symbol: "", name: "" });
+  }>({ symbol: "", name: "" });
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -163,13 +162,13 @@ export default function PortfolioPage() {
                 <HoldingsTable
                   holdings={data.holdings}
                   loading={false}
-                  onBuy={(stockId, symbol, name) => {
-                    setModalStock({ stockId, symbol, name });
+                  onBuy={(symbol, name) => {
+                    setModalStock({ symbol, name });
                     setModalMode("buy");
                     setModalOpen(true);
                   }}
-                  onSell={(stockId, symbol, name) => {
-                    setModalStock({ stockId, symbol, name });
+                  onSell={(symbol, name) => {
+                    setModalStock({ symbol, name });
                     setModalMode("sell");
                     setModalOpen(true);
                   }}
@@ -194,16 +193,15 @@ export default function PortfolioPage() {
         open={modalOpen}
         onOpenChange={setModalOpen}
         mode={modalMode}
-        stockId={modalStock.stockId}
         symbol={modalStock.symbol}
         name={modalStock.name}
         currentPrice={
-          data?.holdings.find((h) => h.stockId === modalStock.stockId)
+          data?.holdings.find((h) => h.symbol === modalStock.symbol)
             ?.currentPrice || 0
         }
         cashBalance={data?.cashBalance || 0}
         heldQuantity={
-          data?.holdings.find((h) => h.stockId === modalStock.stockId)
+          data?.holdings.find((h) => h.symbol === modalStock.symbol)
             ?.quantity || 0
         }
       />

@@ -18,7 +18,6 @@ interface BuySellModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode: "buy" | "sell";
-  stockId: string;
   symbol: string;
   name: string;
   currentPrice: number;
@@ -30,7 +29,6 @@ export function BuySellModal({
   open,
   onOpenChange,
   mode,
-  stockId,
   symbol,
   name,
   currentPrice,
@@ -51,7 +49,7 @@ export function BuySellModal({
       const res = await fetch(`/api/portfolio/${mode}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stockId, quantity }),
+        body: JSON.stringify({ symbol, quantity }),
       });
       const json = await res.json();
       if (json.success) {

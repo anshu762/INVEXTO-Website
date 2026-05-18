@@ -2,17 +2,17 @@
 
 import { useReducer, useCallback } from "react";
 import type { SimState, SimAction, SimStartData } from "@/src/types";
-import { initialState } from "@/src/lib/simulation";
+import { initialState, calcSimPortfolioValue } from "@/src/lib/simulation";
 import { apiPost } from "@/src/lib/api";
 import EventSelector from "@/src/components/simulate/EventSelector";
-import SimulationEngine from "@/src/components/simulate/SimulationEngine";
-import ResultsModal from "@/src/components/simulate/ResultsModal";
+import SimDashboard from "@/src/components/simulate/SimDashboard";
+import SimResults from "@/src/components/simulate/SimResults";
 
 function simReducer(state: SimState, action: SimAction): SimState {
   switch (action.type) {
     case "START": {
       const p = action.payload;
-      return {
+      const s: SimState = {
         ...initialState,
         phase: "running",
         day: 0,
@@ -20,18 +20,23 @@ function simReducer(state: SimState, action: SimAction): SimState {
         eventName: p.event.name,
         eventId: p.event.id,
         stocks: p.stocks,
-        basePrices: p.basePrices,
-        multipliers: p.multipliers,
+        priceHistory: p.priceHistory,
         cashBalance: p.startingCash,
         startDate: p.event.startRealDate,
+        valueHistory: [],
       };
+      s.valueHistory.push(p.startingCash);
+      return s;
     }
     case "TICK": {
       if (state.phase !== "running") return state;
       if (state.day + 1 >= state.totalDays) {
         return { ...state, phase: "finished" };
       }
-      return { ...state, day: state.day + 1 };
+      const nextDay = state.day + 1;
+      const nextState = { ...state, day: nextDay };
+      nextState.valueHistory = [...state.valueHistory, calcSimPortfolioValue(nextState)];
+      return nextState;
     }
     case "BUY": {
       if (state.phase !== "running" && state.phase !== "paused")
@@ -119,20 +124,15 @@ export default function SimulatePage() {
   );
 
   if (state.phase === "finished") {
-    return (
-      <ResultsModal
-        state={state}
-        onTryAnother={() => dispatch({ type: "END" })}
-      />
-    );
+    return <SimResults state={state} onTryAnother={() => dispatch({ type: "END" })} />;
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
+    <main className="min-h-screen bg-gray-950">
       {state.phase === "idle" ? (
         <EventSelector onSelect={handleSelectEvent} />
       ) : (
-        <SimulationEngine state={state} dispatch={dispatch} />
+        <SimDashboard state={state} dispatch={dispatch} />
       )}
     </main>
   );

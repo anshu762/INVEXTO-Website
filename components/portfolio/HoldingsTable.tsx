@@ -16,8 +16,8 @@ type SortKey = keyof Pick<
 interface HoldingsTableProps {
   holdings: HoldingWithPrice[];
   loading: boolean;
-  onBuy: (stockId: string, symbol: string, name: string) => void;
-  onSell: (stockId: string, symbol: string, name: string) => void;
+  onBuy: (symbol: string, name: string) => void;
+  onSell: (symbol: string, name: string) => void;
 }
 
 export function HoldingsTable({
@@ -159,7 +159,7 @@ export function HoldingsTable({
                     size="icon"
                     variant="ghost"
                     className="h-7 w-7 text-emerald-400 hover:bg-emerald-800/40 hover:text-emerald-300"
-                    onClick={() => onBuy(h.stockId, h.symbol, h.name)}
+                    onClick={() => onBuy(h.symbol, h.name)}
                     title="Buy more"
                   >
                     <Plus className="h-4 w-4" />
@@ -168,7 +168,7 @@ export function HoldingsTable({
                     size="icon"
                     variant="ghost"
                     className="h-7 w-7 text-red-400 hover:bg-red-900/30 hover:text-red-300"
-                    onClick={() => onSell(h.stockId, h.symbol, h.name)}
+                    onClick={() => onSell(h.symbol, h.name)}
                     title="Sell"
                   >
                     <Minus className="h-4 w-4" />

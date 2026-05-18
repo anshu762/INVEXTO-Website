@@ -202,12 +202,6 @@ export default function StockDetailPage({
                     {stock.volume.toLocaleString()}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Face Value</span>
-                  <span className="font-medium text-foreground">
-                    {formatINR(stock.faceValue)}
-                  </span>
-                </div>
               </div>
             </div>
             <div className="rounded-xl border border-emerald-800/30 bg-emerald-900/20 p-4">
@@ -254,7 +248,6 @@ export default function StockDetailPage({
           <KeyStatisticsView
             stats={stock.keyStats}
             marketCap={stock.marketCap}
-            faceValue={stock.faceValue}
           />
         </div>
       </main>
@@ -263,7 +256,6 @@ export default function StockDetailPage({
         open={modalOpen}
         onOpenChange={setModalOpen}
         mode={modalMode}
-        stockId={stock.id}
         symbol={symbol}
         name={stock.name}
         currentPrice={stock.currentPrice}

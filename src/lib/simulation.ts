@@ -2,14 +2,8 @@ import type { SimState, SimTransaction } from "@/src/types";
 
 export function getCurrentPrices(state: SimState): Record<string, number> {
   const prices: Record<string, number> = {};
-  for (const sym of Object.keys(state.basePrices)) {
-    const base = state.basePrices[sym];
-    const mults = state.multipliers[sym];
-    if (mults && mults.length > state.day) {
-      prices[sym] = Number((base * mults[state.day]).toFixed(2));
-    } else {
-      prices[sym] = base;
-    }
+  for (const [sym, history] of Object.entries(state.priceHistory)) {
+    prices[sym] = history[state.day] ?? history[history.length - 1] ?? 0;
   }
   return prices;
 }
@@ -95,11 +89,11 @@ export const initialState: SimState = {
   totalDays: 0,
   eventName: "",
   eventId: "",
-  basePrices: {},
   stocks: [],
-  multipliers: {},
+  priceHistory: {},
   cashBalance: STARTING_CASH,
   holdings: {},
   transactions: [],
   startDate: "",
+  valueHistory: [],
 };

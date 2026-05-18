@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSession } from "@/src/lib/session";
+import { fetchQuotes } from "@/src/lib/yahoo-finance";
+import { nseStocks } from "@/src/data/nse-stocks";
 
 export async function POST(
   req: NextRequest,
@@ -20,32 +22,14 @@ export async function POST(
       );
     }
 
-    const stocks = await prisma.stock.findMany({
-      where: { isActive: true },
-      select: { symbol: true, name: true, sector: true },
-      orderBy: { symbol: "asc" },
-    });
-
-    const stockPrices = await prisma.stockPrice.findMany({
-      where: {
-        stock: { isActive: true },
-        priceType: "simulated",
-      },
-      select: {
-        stock: { select: { symbol: true } },
-        price: true,
-      },
-    });
+    const stocks = nseStocks;
+    const symbols = stocks.map((s) => s.symbol);
+    const quotes = await fetchQuotes(symbols);
 
     const basePrices: Record<string, number> = {};
-    for (const sp of stockPrices) {
-      basePrices[sp.stock.symbol] = Number(sp.price);
-    }
-
-    for (const s of stocks) {
-      if (!basePrices[s.symbol]) {
-        basePrices[s.symbol] = 100;
-      }
+    for (const sym of symbols) {
+      const q = quotes[sym];
+      basePrices[sym] = q?.regularMarketPrice ? Number(q.regularMarketPrice) : 100;
     }
 
     const multipliers = event.priceMultipliers as Record<string, number[]>;
@@ -77,6 +61,7 @@ export async function POST(
     });
   } catch (error) {
     if (error instanceof NextResponse) return error;
+    console.error("Simulation start error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to start simulation" },
       { status: 500 }

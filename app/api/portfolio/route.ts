@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSession } from "@/src/lib/session";
-import type { ApiResponse } from "@/src/types";
+import { fetchQuotes } from "@/src/lib/yahoo-finance";
+import { getStockBySymbol } from "@/src/data/nse-stocks";
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,12 +15,7 @@ export async function GET(request: NextRequest) {
         holdings: {
           include: {
             stock: {
-              include: {
-                stockPrices: {
-                  orderBy: { timestamp: "desc" },
-                  take: 2,
-                },
-              },
+              select: { symbol: true, name: true, sector: true },
             },
           },
         },
@@ -48,16 +44,26 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    const symbols = portfolio.holdings.map((h) => h.stock.symbol);
+    const quotes = symbols.length > 0 ? await fetchQuotes(symbols) : {};
+
     const holdings = portfolio.holdings.map((h) => {
-      const [latest, previous] = h.stock.stockPrices;
-      const currentPrice = latest ? Number(latest.price) : 0;
-      const previousClose = previous ? Number(previous.price) : currentPrice;
+      const q = quotes[h.stock.symbol];
+      const currentPrice = q?.regularMarketPrice
+        ? Number(q.regularMarketPrice)
+        : 0;
+      const previousClose = q?.regularMarketPreviousClose
+        ? Number(q.regularMarketPreviousClose)
+        : currentPrice;
       const avgBuyPrice = Number(h.avgBuyPrice);
       const quantity = h.quantity;
       const currentValue = quantity * currentPrice;
       const invested = quantity * avgBuyPrice;
       const gainLoss = currentValue - invested;
-      const gainLossPct = avgBuyPrice > 0 ? ((currentPrice - avgBuyPrice) / avgBuyPrice) * 100 : 0;
+      const gainLossPct =
+        avgBuyPrice > 0
+          ? ((currentPrice - avgBuyPrice) / avgBuyPrice) * 100
+          : 0;
       const todayGain = quantity * (currentPrice - previousClose);
 
       return {

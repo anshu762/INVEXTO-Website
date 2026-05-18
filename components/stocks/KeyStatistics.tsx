@@ -19,7 +19,6 @@ interface StatItem {
 interface KeyStatisticsProps {
   stats?: KeyStats;
   marketCap: number;
-  faceValue: number;
   loading?: boolean;
 }
 
@@ -49,7 +48,6 @@ function StatCard({ label, value, tooltip }: StatItem) {
 export function KeyStatisticsView({
   stats,
   marketCap,
-  faceValue,
   loading,
 }: KeyStatisticsProps) {
   if (loading) {
@@ -102,11 +100,6 @@ export function KeyStatisticsView({
       tooltip: "Total market value = current price × outstanding shares",
     },
     {
-      label: "Sector P/E",
-      value: stats.sectorPe.toFixed(2),
-      tooltip: "Average P/E ratio of all stocks in this sector",
-    },
-    {
       label: "Book Value",
       value: formatINR(stats.bookValue),
       tooltip: "Net asset value per share as per the company's balance sheet",
@@ -120,16 +113,6 @@ export function KeyStatisticsView({
       label: "20D Avg Volume",
       value: stats.avgVolume20d.toLocaleString(),
       tooltip: "Average daily trading volume over the last 20 sessions",
-    },
-    {
-      label: "20D Delivery %",
-      value: formatPercent(stats.avgDeliveryPct20d),
-      tooltip: "Percentage of trades resulting in actual delivery (higher = strong conviction)",
-    },
-    {
-      label: "Face Value",
-      value: formatINR(faceValue),
-      tooltip: "Original nominal value of the share certificate",
     },
     {
       label: "Beta",

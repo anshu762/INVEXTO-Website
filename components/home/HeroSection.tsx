@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -18,10 +19,10 @@ export function HeroSection() {
           size="lg"
           className="mt-8 bg-amber-500 text-emerald-950 hover:bg-amber-400"
         >
-          <a href="#auth">
+          <Link href="/register">
             Get Started
             <ArrowRight className="ml-2 h-5 w-5" />
-          </a>
+          </Link>
         </Button>
       </div>
     </section>

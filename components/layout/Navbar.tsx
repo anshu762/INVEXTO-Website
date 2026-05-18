@@ -73,13 +73,13 @@ export function Navbar() {
               asChild
               className="text-emerald-100/80 hover:bg-emerald-800/50 hover:text-white"
             >
-              <Link href="/#login">Login</Link>
+              <Link href="/login">Login</Link>
             </Button>
             <Button
               asChild
               className="bg-amber-500 text-emerald-950 hover:bg-amber-400"
             >
-              <Link href="/#register">Register</Link>
+              <Link href="/register">Register</Link>
             </Button>
           </div>
         ) : null}

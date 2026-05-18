@@ -1,7 +1,3 @@
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-
 export function HeroSection() {
   return (
     <section className="relative flex flex-col items-center justify-center px-4 py-20 text-center sm:py-28">
@@ -14,16 +10,6 @@ export function HeroSection() {
           Trade virtual stocks, replay historic market crashes, and compete
           in monthly tournaments
         </p>
-        <Button
-          asChild
-          size="lg"
-          className="mt-8 bg-amber-500 text-emerald-950 hover:bg-amber-400"
-        >
-          <Link href="/register">
-            Get Started
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Link>
-        </Button>
       </div>
     </section>
   );

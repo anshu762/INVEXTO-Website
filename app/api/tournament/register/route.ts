@@ -5,23 +5,11 @@ import { requireSession } from "@/src/lib/session";
 export async function POST(req: NextRequest) {
   try {
     const user = await requireSession(req);
-    const { name, phone, email } = await req.json();
+    const { phone } = await req.json();
 
-    if (!name || name.length < 2) {
-      return NextResponse.json(
-        { success: false, error: "Name must be at least 2 characters" },
-        { status: 400 }
-      );
-    }
     if (!phone || !/^\d{10}$/.test(phone)) {
       return NextResponse.json(
         { success: false, error: "Phone must be exactly 10 digits" },
-        { status: 400 }
-      );
-    }
-    if (!email || !email.includes("@")) {
-      return NextResponse.json(
-        { success: false, error: "Valid email is required" },
         { status: 400 }
       );
     }

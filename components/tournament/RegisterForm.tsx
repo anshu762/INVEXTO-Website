@@ -1,18 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import confetti from "canvas-confetti";
 import { toast } from "sonner";
-import { Loader2, User, Phone, Mail, Check } from "lucide-react";
+import { Loader2, Phone, Check } from "lucide-react";
 
 const registerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
   phone: z.string().regex(/^\d{10}$/, "Phone must be exactly 10 digits"),
-  email: z.string().email("Valid email is required"),
   terms: z.boolean().refine((val) => val === true, "You must accept the terms"),
 });
 
@@ -25,6 +23,16 @@ interface Props {
 export function RegisterForm({ tournamentId }: Props) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success) setUserName(json.data.name);
+      })
+      .catch(() => {});
+  }, []);
 
   const {
     register,
@@ -67,26 +75,15 @@ export function RegisterForm({ tournamentId }: Props) {
     <div className="rounded-2xl border border-emerald-800/30 bg-gradient-to-br from-emerald-900/30 to-gray-950 p-6">
       <h2 className="mb-1 text-xl font-bold text-white">Register Now</h2>
       <p className="mb-6 text-sm text-gray-500">
-        Enter your details to join the tournament
+        Enter your phone number to join the tournament
       </p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-gray-400">
-            Full Name
-          </label>
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-600" />
-            <input
-              {...register("name")}
-              placeholder="Your full name"
-              className="w-full rounded-xl border border-emerald-800/25 bg-emerald-950/30 py-2.5 pl-10 pr-3 text-sm text-white placeholder:text-gray-600 outline-none transition focus:border-emerald-600/50 focus:ring-1 focus:ring-emerald-600/20"
-            />
+        {userName && (
+          <div className="rounded-xl border border-emerald-800/20 bg-emerald-950/20 p-3 text-sm text-gray-300">
+            Logged in as <span className="font-semibold text-white">{userName}</span>
           </div>
-          {errors.name && (
-            <p className="mt-1 text-xs text-red-400">{errors.name.message}</p>
-          )}
-        </div>
+        )}
 
         <div>
           <label className="mb-1.5 block text-xs font-medium text-gray-400">
@@ -103,23 +100,6 @@ export function RegisterForm({ tournamentId }: Props) {
           </div>
           {errors.phone && (
             <p className="mt-1 text-xs text-red-400">{errors.phone.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-gray-400">
-            Email
-          </label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-600" />
-            <input
-              {...register("email")}
-              placeholder="email@example.com"
-              className="w-full rounded-xl border border-emerald-800/25 bg-emerald-950/30 py-2.5 pl-10 pr-3 text-sm text-white placeholder:text-gray-600 outline-none transition focus:border-emerald-600/50 focus:ring-1 focus:ring-emerald-600/20"
-            />
-          </div>
-          {errors.email && (
-            <p className="mt-1 text-xs text-red-400">{errors.email.message}</p>
           )}
         </div>
 

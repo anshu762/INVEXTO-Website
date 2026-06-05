@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { TrendingUp, TrendingDown, Trophy, RefreshCw, Clock, Users, ArrowLeft } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
-import { formatINR, formatPercent } from "@/lib/format";
+import { formatINR } from "@/lib/format";
 import { useAuth } from "@/src/hooks/useAuth";
 
 interface LeaderboardEntry {
@@ -134,9 +134,7 @@ export default function LeaderboardPage() {
                   <tr className="border-b border-emerald-800/20 text-[10px] font-medium uppercase tracking-widest text-gray-500">
                     <th className="px-4 py-3 text-left">Rank</th>
                     <th className="px-4 py-3 text-left">Name</th>
-                    <th className="px-4 py-3 text-right">Portfolio Value</th>
-                    <th className="px-4 py-3 text-right">Gain / Loss</th>
-                    <th className="px-4 py-3 text-right">Gain %</th>
+                    <th className="px-4 py-3 text-right">Unrealised Gain</th>
                     <th className="px-4 py-3 text-right">Prize</th>
                   </tr>
                 </thead>
@@ -181,9 +179,6 @@ export default function LeaderboardPage() {
                             )}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right font-mono font-semibold text-white">
-                          {formatINR(entry.totalValue)}
-                        </td>
                         <td
                           className={`px-4 py-3 text-right font-mono text-sm font-medium ${
                             isGainer ? "text-emerald-400" : "text-red-400"
@@ -198,14 +193,6 @@ export default function LeaderboardPage() {
                             {isGainer ? "+" : ""}
                             {formatINR(entry.unrealizedGain)}
                           </span>
-                        </td>
-                        <td
-                          className={`px-4 py-3 text-right font-mono text-sm font-medium ${
-                            isGainer ? "text-emerald-400" : "text-red-400"
-                          }`}
-                        >
-                          {isGainer ? "+" : ""}
-                          {formatPercent(entry.unrealizedGainPct)}
                         </td>
                         <td className="px-4 py-3 text-right font-mono text-sm font-semibold text-amber-400">
                           {entry.prizeAmount > 0 ? formatINR(entry.prizeAmount) : "—"}

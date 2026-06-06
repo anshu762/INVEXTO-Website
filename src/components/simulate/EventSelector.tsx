@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { TrendingUp, TrendingDown, Clock, Gauge, AlertTriangle } from "lucide-react";
+import { TrendingUp, TrendingDown, Clock, Gauge, AlertTriangle, Lightbulb } from "lucide-react";
 import type { SimEvent } from "@/src/types";
 import { apiGet } from "@/src/lib/api";
 import { Navbar } from "@/components/layout/Navbar";
@@ -92,6 +92,20 @@ export default function EventSelector({ onSelect }: Props) {
           </p>
         </div>
 
+        <div className="mb-8 rounded-xl border-l-4 border-blue-500 bg-blue-950/20 px-5 py-4">
+          <div className="flex items-start gap-3">
+            <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-blue-400" />
+            <div>
+              <p className="text-sm font-semibold text-blue-300">Pro Tip</p>
+              <p className="mt-1 text-sm leading-relaxed text-blue-200/70">
+                Research the event before investing! Explore which stocks historically did better
+                or worse during each event to maximise your gains. Not all stocks fall equally in a
+                crash — some sectors are more resilient than others.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => {
             const diff = getDifficulty(event.durationDays);
@@ -150,6 +164,12 @@ export default function EventSelector({ onSelect }: Props) {
 
                   <p className="mb-4 text-sm leading-relaxed text-gray-400 line-clamp-2">
                     {event.description}
+                  </p>
+
+                  <p className="mb-3 text-xs text-gray-500">
+                    {isCrash
+                      ? "📉 Markets declined significantly during this period"
+                      : "📈 Markets rose significantly during this period"}
                   </p>
 
                   <div className="flex items-center gap-4 text-xs text-gray-500">

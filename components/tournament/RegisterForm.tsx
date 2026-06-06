@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import confetti from "canvas-confetti";
 import { toast } from "sonner";
-import { Loader2, Phone, Check, TriangleAlert } from "lucide-react";
+import { Loader2, Phone, Check, TriangleAlert, Shield } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +33,7 @@ export function RegisterForm({ tournamentId }: Props) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [userName, setUserName] = useState("");
+  const [upiId, setUpiId] = useState<string | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingData, setPendingData] = useState<RegisterFormData | null>(null);
 
@@ -40,7 +41,10 @@ export function RegisterForm({ tournamentId }: Props) {
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then((json) => {
-        if (json.success) setUserName(json.data.name);
+        if (json.success) {
+          setUserName(json.data.name);
+          setUpiId(json.data.upiId);
+        }
       })
       .catch(() => {});
   }, []);
@@ -106,6 +110,25 @@ export function RegisterForm({ tournamentId }: Props) {
               Logged in as <span className="font-semibold text-white">{userName}</span>
             </div>
           )}
+
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-gray-400">
+              Prize will be sent to your UPI ID
+            </label>
+            {upiId ? (
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-800/20 bg-emerald-950/30 px-3 py-2.5 text-sm text-gray-400">
+                <Shield className="h-4 w-4 shrink-0 text-emerald-500" />
+                <span className="text-white">{upiId}</span>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-amber-800/20 bg-amber-950/20 px-3 py-2.5 text-xs text-amber-400">
+                ⚠️ You haven&apos;t added a UPI ID. Add one in Profile Settings to be eligible for prize payouts.
+              </div>
+            )}
+            <p className="mt-1 text-[11px] text-gray-600">
+              To update your UPI ID, go to Profile Settings
+            </p>
+          </div>
 
           <div>
             <label className="mb-1.5 block text-xs font-medium text-gray-400">

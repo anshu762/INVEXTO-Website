@@ -206,6 +206,16 @@ export default async function TournamentPage() {
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
+          <div className="mt-3 rounded-xl border border-amber-800/20 bg-amber-950/20 px-4 py-3">
+            <p className="text-xs text-amber-400">
+              🔒 You are locked in this tournament until{" "}
+              {new Date(data.tournament.endDate).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}. Your portfolio is in tournament mode.
+            </p>
+          </div>
         </div>
 
         <div className="rounded-2xl border border-emerald-800/30 bg-gradient-to-br from-emerald-900/20 to-gray-950 p-6">

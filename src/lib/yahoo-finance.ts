@@ -9,10 +9,28 @@ const quoteCache = new TTLMap<any>();
 const historyCache = new TTLMap<PricePoint[]>();
 const multiHistoryCache = new TTLMap<any>();
 const searchCache = new TTLMap<any[]>();
+const newsCache = new TTLMap<any[]>();
 
 const QUOTE_TTL = 30_000;
 const HISTORY_TTL = 300_000;
 const SEARCH_TTL = 60_000;
+const NEWS_TTL = 1_800_000;
+
+function getLastTradingDay(): Date {
+  const now = new Date();
+  const ist = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  const day = ist.getDay();
+  const lastTrading = new Date(ist);
+  if (day === 0) lastTrading.setDate(ist.getDate() - 2);
+  else if (day === 6) lastTrading.setDate(ist.getDate() - 1);
+  lastTrading.setHours(0, 0, 0, 0);
+  return lastTrading;
+}
+
+function isWeekend(): boolean {
+  const ist = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  return ist.getDay() === 0 || ist.getDay() === 6;
+}
 
 export async function fetchQuote(symbol: string) {
   const cached = quoteCache.get(symbol);
@@ -138,37 +156,45 @@ export async function fetchStockDetail(symbol: string): Promise<StockDetail | nu
     }
   } catch {}
 
+  if (stats.ttmPe === 0 && stats.ttmEps > 0 && base.currentPrice > 0) {
+    stats.ttmPe = Number((base.currentPrice / stats.ttmEps).toFixed(2));
+  }
+  if (stats.beta === 0) stats.beta = 1.0;
+  if (!stats.sectorPe || stats.sectorPe === 0) stats.sectorPe = 0;
+
   return { ...base, keyStats: stats };
 }
 
 export async function fetchHistoricalPrices(
   symbol: string,
   range: "1d" | "1m" | "1y" | "5d" = "1d"
-): Promise<PricePoint[]> {
+): Promise<{ prices: PricePoint[]; isWeekend: boolean; chartDate: string }> {
   const cacheKey = `${symbol}:${range}`;
   const cached = historyCache.get(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    return { prices: cached, isWeekend: isWeekend(), chartDate: new Date().toISOString() };
+  }
 
-  const now = new Date();
+  const ist = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
   let period1: Date;
   let interval: string;
 
   switch (range) {
     case "1d":
-      period1 = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      period1 = getLastTradingDay();
       interval = "5m";
       break;
     case "5d":
-      period1 = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
+      period1 = new Date(ist.getTime() - 5 * 24 * 60 * 60 * 1000);
       interval = "15m";
       break;
     case "1m":
-      period1 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      period1 = new Date(ist.getTime() - 30 * 24 * 60 * 60 * 1000);
       interval = "1d";
       break;
     case "1y":
     default:
-      period1 = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+      period1 = new Date(ist.getTime() - 365 * 24 * 60 * 60 * 1000);
       interval = "1d";
       break;
   }
@@ -199,7 +225,68 @@ export async function fetchHistoricalPrices(
       }));
 
     historyCache.set(cacheKey, prices, HISTORY_TTL);
-    return prices;
+
+    return {
+      prices,
+      isWeekend: isWeekend(),
+      chartDate: period1.toISOString(),
+    };
+  } catch {
+    return { prices: [], isWeekend: isWeekend(), chartDate: new Date().toISOString() };
+  }
+}
+
+export interface StockNewsItem {
+  title: string;
+  publisher: string;
+  link: string;
+  publishedAt: number;
+  thumbnail?: string;
+}
+
+export async function getStockNews(symbol: string): Promise<StockNewsItem[]> {
+  const cacheKey = `news:${symbol}`;
+  const cached = newsCache.get(cacheKey);
+  if (cached) return cached as StockNewsItem[];
+
+  const baseSymbol = symbol.replace(".NS", "");
+  const stockInfo = getStockBySymbol(symbol);
+  const query = stockInfo
+    ? `${stockInfo.name} ${baseSymbol} NSE share`
+    : `${baseSymbol} NSE stock`;
+
+  try {
+    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-IN&gl=IN&ceid=IN:en`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+    });
+    const xml = await res.text();
+
+    const items: StockNewsItem[] = [];
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+    let match;
+
+    while ((match = itemRegex.exec(xml)) !== null) {
+      if (items.length >= 5) break;
+      const c = match[1];
+      const titleRaw = c.match(/<title>(.*?)<\/title>/)?.[1]?.trim();
+      if (!titleRaw) continue;
+      const title = titleRaw.replace(/^<!\[CDATA\[|\]\]>$/g, "");
+      const link = c.match(/<link>([^<]*)<\/link>/)?.[1] ?? "";
+      const pubDate = c.match(/<pubDate>([^<]*)<\/pubDate>/)?.[1] ?? "";
+      const source = c.match(/<source[^>]*>([^<]*)<\/source>/)?.[1] ?? "Google News";
+
+      items.push({
+        title,
+        publisher: source,
+        link,
+        publishedAt: pubDate ? new Date(pubDate).getTime() : Date.now(),
+        thumbnail: undefined,
+      });
+    }
+
+    newsCache.set(cacheKey, items, NEWS_TTL);
+    return items;
   } catch {
     return [];
   }

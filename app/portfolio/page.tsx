@@ -7,6 +7,7 @@ import {
   TrendingDown,
   BarChart3,
   PiggyBank,
+  Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,6 +29,8 @@ export default function PortfolioPage() {
     symbol: string;
     name: string;
   }>({ symbol: "", name: "" });
+  const [inTournament, setInTournament] = useState(false);
+  const [tournamentEndDate, setTournamentEndDate] = useState("");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -39,11 +42,24 @@ export default function PortfolioPage() {
     fetch("/api/portfolio")
       .then((res) => res.json())
       .then((json) => {
-        if (json.success) setData(json.data);
-        else setData(null);
+        if (json.success) {
+          setData(json.data);
+          if (json.data?.inTournament) {
+            setInTournament(true);
+          }
+        } else setData(null);
       })
       .catch(() => setData(null))
       .finally(() => setLoading(false));
+
+    fetch("/api/tournament/active")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success && json.data?.tournament?.endDate) {
+          setTournamentEndDate(json.data.tournament.endDate);
+        }
+      })
+      .catch(() => {});
   }, [user, authLoading]);
 
   if (authLoading || (!user && loading)) {
@@ -76,6 +92,25 @@ export default function PortfolioPage() {
             Welcome back, {user.name}
           </p>
         </div>
+
+        {inTournament && (
+          <div className="mb-6 rounded-xl border border-amber-800/20 bg-amber-950/20 px-4 py-3">
+            <div className="flex items-center gap-2 text-sm text-amber-400">
+              <Trophy className="h-4 w-4 shrink-0" />
+              <span>
+                🏆 TOURNAMENT MODE — Your portfolio is in tournament mode until{" "}
+                {tournamentEndDate
+                  ? new Date(tournamentEndDate).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })
+                  : "the end of the month"}
+                . Simulate Events are disabled. Keep trading to climb the leaderboard!
+              </span>
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

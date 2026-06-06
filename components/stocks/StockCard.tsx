@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Flame } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { StockWithPrice } from "@/src/types";
 import { formatINR, formatPercent, formatCompact } from "@/lib/format";
 
@@ -19,7 +20,7 @@ const sectorColors: Record<string, string> = {
   Consumer: "bg-pink-500/10 text-pink-400 border-pink-500/30",
 };
 
-export function StockCard({ stock }: { stock: StockWithPrice }) {
+export function StockCard({ stock, isHot = false }: { stock: StockWithPrice; isHot?: boolean }) {
   const isUp = stock.changePercent > 0;
   const isDown = stock.changePercent < 0;
   const colorClass = isUp
@@ -50,6 +51,19 @@ export function StockCard({ stock }: { stock: StockWithPrice }) {
             >
               {stock.symbol.replace(".NS", "")}
             </Badge>
+            {isHot && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex items-center gap-0.5 rounded bg-orange-500 px-1.5 py-0.5 text-[10px] font-bold text-white cursor-help shrink-0">
+                    <Flame className="h-2.5 w-2.5" />
+                    Hot
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="bg-foreground text-background text-xs">
+                  This stock is being purchased by numerous users in the tournament
+                </TooltipContent>
+              </Tooltip>
+            )}
           </div>
           <Badge
             variant="outline"

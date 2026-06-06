@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { Search, RefreshCw, X, ChevronDown } from "lucide-react";
+import { Search, RefreshCw, X, ChevronDown, TrendingUp, TrendingDown, Flame } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,6 +37,8 @@ export function StockList({ initialStocks }: StockListProps) {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [mounted, setMounted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [hotStocks, setHotStocks] = useState<string[]>([]);
+  const [trendFilter, setTrendFilter] = useState<"all" | "bullish" | "bearish" | "hot">("all");
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -96,6 +98,16 @@ export function StockList({ initialStocks }: StockListProps) {
 
   useEffect(() => {
     setMounted(true);
+    const fetchHot = async () => {
+      try {
+        const res = await fetch("/api/stocks/hot");
+        const json = await res.json();
+        if (json.success) setHotStocks(json.data.hotStocks);
+      } catch {}
+    };
+    fetchHot();
+    const interval = setInterval(fetchHot, 300000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -109,6 +121,13 @@ export function StockList({ initialStocks }: StockListProps) {
     let result = [...stocks];
     if (sector !== "All") {
       result = result.filter((s) => s.sector === sector);
+    }
+    if (trendFilter === "bullish") {
+      result = result.filter((s) => s.changePercent > 0);
+    } else if (trendFilter === "bearish") {
+      result = result.filter((s) => s.changePercent < 0);
+    } else if (trendFilter === "hot") {
+      result = result.filter((s) => hotStocks.includes(s.symbol));
     }
     switch (sort) {
       case "price":
@@ -124,7 +143,7 @@ export function StockList({ initialStocks }: StockListProps) {
         result.sort((a, b) => a.symbol.localeCompare(b.symbol));
     }
     return result;
-  }, [stocks, sector, sort, isSearchResult]);
+  }, [stocks, sector, sort, isSearchResult, trendFilter, hotStocks]);
 
   const isLoading = loading || searching;
 
@@ -227,6 +246,34 @@ export function StockList({ initialStocks }: StockListProps) {
         </div>
       )}
 
+      {!isSearchResult && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+            Trend
+          </span>
+          <div className="flex gap-1 rounded-lg border border-emerald-800/20 bg-emerald-900/10 p-0.5">
+            {[
+              { value: "all", label: "All" },
+              { value: "bullish", label: "🟢 Bullish" },
+              { value: "bearish", label: "🔴 Bearish" },
+              { value: "hot", label: "🔥 Hot Stock" },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setTrendFilter(opt.value as typeof trendFilter)}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+                  trendFilter === opt.value
+                    ? "bg-amber-500 text-emerald-950 shadow-sm shadow-amber-900/30"
+                    : "text-emerald-300/60 hover:text-emerald-300/90"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>
           {isSearchResult ? "Search results" : `${filtered.length} stock${filtered.length !== 1 ? "s" : ""} shown`}
@@ -262,7 +309,7 @@ export function StockList({ initialStocks }: StockListProps) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((stock) => (
-            <StockCard key={stock.id} stock={stock} />
+            <StockCard key={stock.id} stock={stock} isHot={hotStocks.includes(stock.symbol)} />
           ))}
         </div>
       )}

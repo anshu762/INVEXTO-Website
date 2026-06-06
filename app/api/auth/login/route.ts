@@ -35,6 +35,7 @@ export async function POST(request: Request) {
       userId: user.id,
       email: user.email,
       name: user.name,
+      isAdmin: user.isAdmin,
     });
 
     const userData: User = {
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
       name: user.name,
       email: user.email,
       upiId: user.upiId,
+      isAdmin: user.isAdmin,
       createdAt: user.createdAt.toISOString(),
     };
 

@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
     const dbUser = await prisma.user.create({
       data: { name, email, passwordHash, upiId: upiId || null },
-      select: { id: true, name: true, email: true, upiId: true, createdAt: true },
+      select: { id: true, name: true, email: true, upiId: true, isAdmin: true, createdAt: true },
     });
 
     await prisma.portfolio.create({
@@ -56,6 +56,7 @@ export async function POST(request: Request) {
       userId: dbUser.id,
       email: dbUser.email,
       name: dbUser.name,
+      isAdmin: dbUser.isAdmin,
     });
 
     const user: User = {
@@ -63,6 +64,7 @@ export async function POST(request: Request) {
       name: dbUser.name,
       email: dbUser.email,
       upiId: dbUser.upiId,
+      isAdmin: dbUser.isAdmin,
       createdAt: dbUser.createdAt.toISOString(),
     };
 

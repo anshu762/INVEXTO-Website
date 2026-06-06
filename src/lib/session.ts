@@ -15,7 +15,7 @@ export async function getSession(
 
   const dbUser = await prisma.user.findUnique({
     where: { id: payload.userId },
-    select: { id: true, name: true, email: true, upiId: true, createdAt: true },
+    select: { id: true, name: true, email: true, upiId: true, isAdmin: true, createdAt: true },
   });
 
   if (!dbUser) return null;
@@ -25,6 +25,7 @@ export async function getSession(
     name: dbUser.name,
     email: dbUser.email,
     upiId: dbUser.upiId,
+    isAdmin: dbUser.isAdmin,
     createdAt: dbUser.createdAt.toISOString(),
   };
 }

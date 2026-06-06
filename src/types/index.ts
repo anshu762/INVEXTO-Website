@@ -3,6 +3,7 @@ export interface User {
   name: string;
   email: string;
   upiId: string | null;
+  isAdmin: boolean;
   createdAt: string;
 }
 
@@ -192,4 +193,5 @@ export interface JWTPayload {
   userId: string;
   email: string;
   name: string;
+  isAdmin: boolean;
 }

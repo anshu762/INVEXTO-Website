@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { TrendingUp, Menu, X, LayoutDashboard, Briefcase, Gamepad2, Trophy, BookOpen } from "lucide-react";
+import { TrendingUp, Menu, X, LayoutDashboard, Briefcase, Gamepad2, Trophy, BookOpen, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/src/hooks/useAuth";
 
@@ -58,6 +58,15 @@ export function Navbar() {
             </div>
 
             <div className="hidden items-center gap-3 md:flex">
+              {(user as any).isAdmin && (
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Shield className="h-3 w-3" />
+                  Admin
+                </Link>
+              )}
               <span className="text-sm text-emerald-300/70">{user.name}</span>
               <Button
                 variant="outline"
@@ -119,6 +128,16 @@ export function Navbar() {
                 )}
               </Link>
             ))}
+            {(user as any).isAdmin && (
+              <Link
+                href="/admin"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-emerald-800/50 hover:text-white"
+              >
+                <Shield className="h-4 w-4" />
+                Admin
+              </Link>
+            )}
             <hr className="border-emerald-800/40" />
             <div className="px-3 py-2 text-xs text-emerald-300/70">
               {user.name}

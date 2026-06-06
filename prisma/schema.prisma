@@ -32,11 +32,13 @@ model User {
   email        String   @unique
   upiId        String?
   passwordHash String
+  isAdmin      Boolean  @default(false)
   createdAt    DateTime @default(now())
 
   portfolios          Portfolio[]
   registrations       TournamentRegistration[]
   simulationSnapshots SimulationSnapshot[]
+  prizePayments       PrizePayment[]
 }
 
 model Stock {
@@ -115,8 +117,9 @@ model Tournament {
   status    TournamentStatus
   prizePool Json             @default("{}")
 
-  portfolios   Portfolio[]
-  registrations TournamentRegistration[]
+  portfolios      Portfolio[]
+  registrations    TournamentRegistration[]
+  prizePayments    PrizePayment[]
 }
 
 model TournamentRegistration {
@@ -133,6 +136,19 @@ model TournamentRegistration {
   user       User       @relation(fields: [userId], references: [id])
 
   @@unique([tournamentId, userId])
+}
+
+model PrizePayment {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  tournamentId String   @db.Uuid
+  amount       Decimal  @db.Decimal(12, 2)
+  upiId        String
+  paidAt       DateTime @default(now())
+  paidByAdmin  String
+
+  user       User       @relation(fields: [userId], references: [id])
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
 }
 
 model SimulationSnapshot {

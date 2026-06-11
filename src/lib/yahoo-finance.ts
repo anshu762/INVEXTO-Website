@@ -229,13 +229,13 @@ export async function fetchHistoricalPrices(
         p2.setHours(23, 59, 59, 999);
         options.period2 = p2;
       }
-      const result = await yahooFinance.chart(symbol, options);
+      const result = await yahooFinance.chart(symbol, options) as any;
       raw = result.quotes ?? [];
     } else {
       const result = await yahooFinance.chart(symbol, {
         period1,
         interval: interval as any,
-      });
+      }) as any;
       raw = result.quotes ?? [];
     }
 

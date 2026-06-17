@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Wallet,
   TrendingUp,
@@ -29,38 +29,56 @@ export default function PortfolioPage() {
     symbol: string;
     name: string;
   }>({ symbol: "", name: "" });
-  const [inTournament, setInTournament] = useState(false);
+  const [mode, setMode] = useState<"normal" | "tournament">("normal");
+  const [hasTournament, setHasTournament] = useState(false);
   const [tournamentEndDate, setTournamentEndDate] = useState("");
+  const [initialized, setInitialized] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (authLoading) return;
+    if (!user) {
       window.location.href = "/";
       return;
     }
-    if (!user) return;
-
-    fetch("/api/portfolio")
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success) {
-          setData(json.data);
-          if (json.data?.inTournament) {
-            setInTournament(true);
-          }
-        } else setData(null);
-      })
-      .catch(() => setData(null))
-      .finally(() => setLoading(false));
 
     fetch("/api/tournament/active")
       .then((r) => r.json())
       .then((json) => {
-        if (json.success && json.data?.tournament?.endDate) {
-          setTournamentEndDate(json.data.tournament.endDate);
+        const isRegistered = json.success && json.data?.isRegistered;
+        if (isRegistered) {
+          setHasTournament(true);
+          setMode("tournament");
+          if (json.data?.tournament?.endDate) {
+            setTournamentEndDate(json.data.tournament.endDate);
+          }
         }
+        setInitialized(true);
       })
-      .catch(() => {});
+      .catch(() => setInitialized(true));
   }, [user, authLoading]);
+
+  useEffect(() => {
+    if (!user || !initialized) return;
+    setLoading(true);
+    fetch(`/api/portfolio?mode=${mode}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success) {
+          setData(json.data);
+        } else setData(null);
+      })
+      .catch(() => setData(null))
+      .finally(() => setLoading(false));
+  }, [user, initialized, mode, refreshKey]);
+
+  const prevModalOpen = useRef(false);
+  useEffect(() => {
+    if (prevModalOpen.current && !modalOpen) {
+      setRefreshKey((k) => k + 1);
+    }
+    prevModalOpen.current = modalOpen;
+  }, [modalOpen]);
 
   if (authLoading || (!user && loading)) {
     return (
@@ -93,20 +111,45 @@ export default function PortfolioPage() {
           </p>
         </div>
 
-        {inTournament && (
+        {hasTournament && (
+          <div className="mb-6 inline-flex items-center rounded-xl border border-emerald-800/20 bg-emerald-950/40 p-1">
+            <button
+              onClick={() => setMode("normal")}
+              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                mode === "normal"
+                  ? "bg-emerald-600 text-white shadow-sm shadow-emerald-900/50"
+                  : "text-emerald-400/60 hover:text-emerald-300"
+              }`}
+            >
+              <Wallet className="h-4 w-4" />
+              Normal
+            </button>
+            <button
+              onClick={() => setMode("tournament")}
+              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                mode === "tournament"
+                  ? "bg-amber-500 text-emerald-950 shadow-sm shadow-amber-900/50"
+                  : "text-emerald-400/60 hover:text-emerald-300"
+              }`}
+            >
+              <Trophy className="h-4 w-4" />
+              Tournament
+            </button>
+          </div>
+        )}
+
+        {mode === "tournament" && tournamentEndDate && (
           <div className="mb-6 rounded-xl border border-amber-800/20 bg-amber-950/20 px-4 py-3">
             <div className="flex items-center gap-2 text-sm text-amber-400">
               <Trophy className="h-4 w-4 shrink-0" />
               <span>
-                🏆 TOURNAMENT MODE — Your portfolio is in tournament mode until{" "}
-                {tournamentEndDate
-                  ? new Date(tournamentEndDate).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })
-                  : "the end of the month"}
-                . Simulate Events are disabled. Keep trading to climb the leaderboard!
+                Tournament ends on{" "}
+                {new Date(tournamentEndDate).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+                . Keep trading to climb the leaderboard!
               </span>
             </div>
           </div>
@@ -239,6 +282,7 @@ export default function PortfolioPage() {
           data?.holdings.find((h) => h.symbol === modalStock.symbol)
             ?.quantity || 0
         }
+        apiEndpoint={mode === "tournament" ? "/api/tournament/trade" : undefined}
       />
     </>
   );

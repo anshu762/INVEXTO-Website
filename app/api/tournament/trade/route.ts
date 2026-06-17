@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     const user = await requireSession(req);
     const { stockSymbol, quantity, type } = await req.json();
 
-    if (!stockSymbol || !quantity || quantity <= 0 || !["buy", "sell"].includes(type)) {
+    if (!stockSymbol || !quantity || quantity <= 0 || !Number.isInteger(quantity) || !["buy", "sell"].includes(type)) {
       return NextResponse.json(
         { success: false, error: "Invalid request parameters" },
         { status: 400 }
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
       await prisma.$transaction(async (tx) => {
         await tx.portfolio.update({
           where: { id: portfolio.id },
-          data: { cashBalance: cashBalance - total },
+          data: { cashBalance: { decrement: total } },
         });
 
         const existing = await tx.holding.findUnique({
@@ -178,7 +178,7 @@ export async function POST(req: NextRequest) {
       await prisma.$transaction(async (tx) => {
         await tx.portfolio.update({
           where: { id: portfolio.id },
-          data: { cashBalance: Number(portfolio.cashBalance) + proceeds },
+          data: { cashBalance: { increment: proceeds } },
         });
 
         const remaining = holding.quantity - quantity;

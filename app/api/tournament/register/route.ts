@@ -42,24 +42,14 @@ export async function POST(req: NextRequest) {
     }
 
     await prisma.$transaction(async (tx) => {
-      const portfolio = await tx.portfolio.findFirst({
-        where: { userId: user.id },
+      await tx.portfolio.create({
+        data: {
+          userId: user.id,
+          cashBalance: 100000,
+          inTournament: true,
+          tournamentId: tournament.id,
+        },
       });
-
-      if (portfolio) {
-        await tx.holding.deleteMany({
-          where: { portfolioId: portfolio.id },
-        });
-
-        await tx.portfolio.update({
-          where: { id: portfolio.id },
-          data: {
-            cashBalance: 100000,
-            inTournament: true,
-            tournamentId: tournament.id,
-          },
-        });
-      }
 
       await tx.tournamentRegistration.create({
         data: {

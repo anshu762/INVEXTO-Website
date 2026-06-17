@@ -26,6 +26,7 @@ export default function StockDetailPage({
   const [modalMode, setModalMode] = useState<"buy" | "sell">("buy");
   const [cashBalance, setCashBalance] = useState(0);
   const [heldQuantity, setHeldQuantity] = useState(0);
+  const [inTournament, setInTournament] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -49,8 +50,9 @@ export default function StockDetailPage({
     fetch("/api/portfolio")
       .then((r) => r.json())
       .then((json) => {
-        if (json.success) {
+        if (json.success && json.data) {
           setCashBalance(json.data.cashBalance);
+          setInTournament(json.data.inTournament);
           const holding = json.data.holdings.find(
             (h: { symbol: string }) => h.symbol === symbol
           );
@@ -275,6 +277,7 @@ export default function StockDetailPage({
         currentPrice={stock.currentPrice}
         cashBalance={cashBalance}
         heldQuantity={heldQuantity}
+        apiEndpoint={inTournament ? "/api/tournament/trade" : undefined}
       />
     </>
   );

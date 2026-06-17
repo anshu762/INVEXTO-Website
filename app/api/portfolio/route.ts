@@ -9,8 +9,20 @@ export async function GET(request: NextRequest) {
   try {
     const user = await requireSession(request);
 
-    const portfolio = await prisma.portfolio.findFirst({
-      where: { userId: user.id },
+    const { searchParams } = new URL(request.url);
+    const mode = searchParams.get("mode") || "normal";
+
+    const where: { userId: string; inTournament?: boolean; tournamentId?: { not: null } | null } = { userId: user.id };
+    if (mode === "normal") {
+      where.inTournament = false;
+    } else if (mode === "tournament") {
+      where.inTournament = true;
+      where.tournamentId = { not: null };
+    }
+
+    let portfolio = await prisma.portfolio.findFirst({
+      where,
+      orderBy: { createdAt: "desc" },
       include: {
         holdings: {
           include: {
@@ -27,16 +39,16 @@ export async function GET(request: NextRequest) {
     });
 
     if (!portfolio) {
-      const newPortfolio = await prisma.portfolio.create({
+      const fresh = await prisma.portfolio.create({
         data: { userId: user.id, cashBalance: 100000 },
       });
       return NextResponse.json({
         success: true,
         data: {
           holdings: [],
-          cashBalance: Number(newPortfolio.cashBalance),
+          cashBalance: Number(fresh.cashBalance),
           totalInvested: 0,
-          totalCurrentValue: Number(newPortfolio.cashBalance),
+          totalCurrentValue: Number(fresh.cashBalance),
           unrealizedGain: 0,
           todayGain: 0,
           realizedGainTillDate: 0,

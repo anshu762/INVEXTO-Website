@@ -26,16 +26,16 @@ async function ensureStockRecord(symbol: string) {
 export async function POST(request: NextRequest) {
   try {
     const user = await requireSession(request);
-    const { symbol, quantity, simulatedPrice } = await request.json();
+    const { symbol, quantity } = await request.json();
 
-    if (!symbol || !quantity || quantity <= 0) {
+    if (!symbol || !quantity || quantity <= 0 || !Number.isInteger(quantity)) {
       return NextResponse.json(
         { success: false, error: "Invalid symbol or quantity" },
         { status: 400 }
       );
     }
 
-    let currentPrice = simulatedPrice ? Number(simulatedPrice) : null;
+    let currentPrice = null;
 
     if (!currentPrice) {
       const quote = await fetchQuote(symbol);
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     const stockRecord = await ensureStockRecord(symbol);
 
     const portfolio = await prisma.portfolio.findFirst({
-      where: { userId: user.id },
+      where: { userId: user.id, inTournament: false },
     });
 
     if (!portfolio) {
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     const result = await prisma.$transaction(async (tx) => {
       await tx.portfolio.update({
         where: { id: portfolio.id },
-        data: { cashBalance: cashBalance - total },
+        data: { cashBalance: { decrement: total } },
       });
 
       const existing = await tx.holding.findUnique({

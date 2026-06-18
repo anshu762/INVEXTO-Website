@@ -38,47 +38,52 @@ async function getAllPastTournaments() {
 }
 
 async function getData(userId: string) {
-  const tournament = await prisma.tournament.findFirst({
+  const activeTournamentsRaw = await prisma.tournament.findMany({
     where: { status: "active" },
+    orderBy: { startDate: "asc" },
   });
+
+  const activeTournaments = await Promise.all(
+    activeTournamentsRaw.map(async (tournament) => {
+      const registration = await prisma.tournamentRegistration.findUnique({
+        where: {
+          tournamentId_userId: {
+            tournamentId: tournament.id,
+            userId,
+          },
+        },
+      });
+
+      const totalParticipants = await prisma.tournamentRegistration.count({
+        where: { tournamentId: tournament.id },
+      });
+
+      let portfolio = null;
+      let rank = null;
+
+      if (registration) {
+        const dbPortfolio = await prisma.portfolio.findFirst({
+          where: { userId, inTournament: true, tournamentId: tournament.id },
+        });
+        if (dbPortfolio) {
+          portfolio = { cashBalance: Number(dbPortfolio.cashBalance) };
+        }
+      }
+
+      return {
+        tournament,
+        registration,
+        portfolio,
+        rank,
+        totalParticipants,
+      };
+    })
+  );
 
   const pastTournaments = await getAllPastTournaments();
 
-  if (!tournament) {
-    return { tournament: null, registration: null, portfolio: null, rank: null, totalParticipants: 0, pastTournaments };
-  }
-
-  const registration = await prisma.tournamentRegistration.findUnique({
-    where: {
-      tournamentId_userId: {
-        tournamentId: tournament.id,
-        userId,
-      },
-    },
-  });
-
-  const totalParticipants = await prisma.tournamentRegistration.count({
-    where: { tournamentId: tournament.id },
-  });
-
-  let portfolio = null;
-  let rank = null;
-
-  if (registration) {
-    const dbPortfolio = await prisma.portfolio.findFirst({
-      where: { userId, inTournament: true, tournamentId: tournament.id },
-    });
-    if (dbPortfolio) {
-      portfolio = { cashBalance: Number(dbPortfolio.cashBalance) };
-    }
-  }
-
   return {
-    tournament,
-    registration,
-    portfolio,
-    rank,
-    totalParticipants,
+    activeTournaments,
     pastTournaments,
   };
 }
@@ -106,16 +111,14 @@ export default async function TournamentPage() {
   }
 
   const data = await getData(userId);
-
-
-
   const nextMonth = getNextMonthStart();
   const nextMonthName = getNextMonthName();
 
-  if (!data.tournament) {
-    return (
-      <>
-        <Navbar />
+  return (
+    <>
+      <Navbar />
+      
+      {data.activeTournaments.length === 0 ? (
         <main className="mx-auto max-w-2xl px-4 py-16 text-center">
           <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-full bg-emerald-900/30">
             <Trophy className="h-8 w-8 text-emerald-400" />
@@ -129,108 +132,93 @@ export default async function TournamentPage() {
           <div className="my-8 flex justify-center">
             <CountdownTimer targetDate={nextMonth} />
           </div>
-
         </main>
-        <TournamentHistoryList pastTournaments={data.pastTournaments} />
-      </>
-    );
-  }
-
-  if (!data.registration) {
-    return (
-      <>
-        <Navbar />
+      ) : (
         <main className="mx-auto max-w-5xl px-4 py-8">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold text-white">Tournament</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Compete with others for real prizes
+          <div className="mb-10 text-center">
+            <h1 className="text-3xl font-bold text-white">Active Tournaments</h1>
+            <p className="mt-2 text-sm text-gray-500">
+              Join multiple tournaments and compete for real prizes
             </p>
           </div>
-          <div className="grid gap-6 md:grid-cols-2">
-            <TournamentRulesCard
-              tournament={{
-                startDate: data.tournament.startDate.toISOString(),
-                endDate: data.tournament.endDate.toISOString(),
-                prizePool: data.tournament.prizePool as Record<string, unknown>,
-              }}
-              totalParticipants={data.totalParticipants}
-            />
-            <RegisterForm tournamentId={data.tournament.id} />
+          
+          <div className="space-y-12">
+            {data.activeTournaments.map((entry) => (
+              <div key={entry.tournament.id} className="relative pb-12 border-b border-emerald-900/30 last:border-0 last:pb-0">
+                <div className="mb-6 flex items-center justify-between">
+                   <h2 className="text-xl font-bold text-emerald-400 flex items-center gap-2">
+                     <Trophy className="h-5 w-5" />
+                     {new Date(entry.tournament.startDate).toLocaleDateString("en-IN", { month: "long", year: "numeric" })} Tournament
+                   </h2>
+                   {entry.registration && (
+                     <span className="rounded-full bg-emerald-900/50 px-3 py-1 text-xs font-semibold text-emerald-400 border border-emerald-700/50">
+                       Registered
+                     </span>
+                   )}
+                </div>
+
+                {!entry.registration ? (
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <TournamentRulesCard
+                      tournament={{
+                        startDate: entry.tournament.startDate.toISOString(),
+                        endDate: entry.tournament.endDate.toISOString(),
+                        prizePool: entry.tournament.prizePool as Record<string, unknown>,
+                      }}
+                      totalParticipants={entry.totalParticipants}
+                    />
+                    <RegisterForm tournamentId={entry.tournament.id} />
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="rounded-2xl border border-emerald-700/30 bg-emerald-900/30 p-5">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-600/20">
+                            <Trophy className="h-5 w-5 text-emerald-400" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-emerald-300">
+                              You are locked in!
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {entry.totalParticipants} participants competing
+                            </p>
+                          </div>
+                        </div>
+                        <Link
+                          href="/tournament/leaderboard"
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500"
+                        >
+                          View Leaderboard
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-emerald-800/30 bg-gradient-to-br from-emerald-900/20 to-gray-950 p-6">
+                      <h3 className="mb-4 text-lg font-bold text-white">Your Portfolio for this Tournament</h3>
+                      {entry.portfolio ? (
+                        <div className="rounded-xl border border-emerald-800/20 bg-emerald-950/30 p-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-400">Cash Balance</span>
+                            <span className="text-lg font-bold text-emerald-400">
+                              {formatINR(entry.portfolio.cashBalance)}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">Loading portfolio...</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </main>
-        <TournamentHistoryList pastTournaments={data.pastTournaments} />
-      </>
-    );
-  }
+      )}
 
-  return (
-    <>
-      <Navbar />
-      <main className="mx-auto max-w-4xl px-4 py-8">
-        <div className="mb-6 rounded-2xl border border-emerald-700/30 bg-emerald-900/30 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-600/20">
-                <Trophy className="h-5 w-5 text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-emerald-300">
-                  You are registered!
-                </p>
-                <p className="text-xs text-gray-500">
-                  {data.rank
-                    ? `You are ranked #${data.rank} of ${data.totalParticipants} participants`
-                    : `${data.totalParticipants} participants`}
-                </p>
-              </div>
-            </div>
-            <Link
-              href="/tournament/leaderboard"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500"
-            >
-              View Leaderboard
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-          <div className="mt-3 rounded-xl border border-amber-800/20 bg-amber-950/20 px-4 py-3">
-            <p className="text-xs text-amber-400">
-              🔒 You are locked in this tournament until{" "}
-              {new Date(data.tournament.endDate).toLocaleDateString("en-IN", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}. Your portfolio is in tournament mode.
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-emerald-800/30 bg-gradient-to-br from-emerald-900/20 to-gray-950 p-6">
-          <h2 className="mb-4 text-lg font-bold text-white">Your Portfolio</h2>
-          {data.portfolio ? (
-            <div className="rounded-xl border border-emerald-800/20 bg-emerald-950/30 p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400">Cash Balance</span>
-                <span className="text-lg font-bold text-emerald-400">
-                  {formatINR(data.portfolio.cashBalance)}
-                </span>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500">Loading...</p>
-          )}
-        </div>
-
-        <div className="mt-8 text-center">
-          <Link
-            href="/tournament/leaderboard"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-amber-400 hover:text-amber-300 transition-colors"
-          >
-            View Full Leaderboard
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </main>
       <TournamentHistoryList pastTournaments={data.pastTournaments} />
     </>
   );

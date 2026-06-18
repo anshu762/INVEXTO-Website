@@ -22,7 +22,7 @@ export default function AdminTournamentPage() {
   const [tournaments, setTournaments] = useState<TournamentData[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
-  const [closing, setClosing] = useState(false);
+  const [closingId, setClosingId] = useState<string | null>(null);
   const [newStartDate, setNewStartDate] = useState("");
   const [newEndDate, setNewEndDate] = useState("");
 
@@ -67,10 +67,14 @@ export default function AdminTournamentPage() {
     }
   };
 
-  const handleClose = async () => {
-    setClosing(true);
+  const handleClose = async (id: string) => {
+    setClosingId(id);
     try {
-      const res = await fetch("/api/tournament/close", { method: "PATCH" });
+      const res = await fetch("/api/tournament/close", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tournamentId: id }),
+      });
       const json = await res.json();
       if (json.success) {
         toast.success("Tournament closed!");
@@ -81,7 +85,7 @@ export default function AdminTournamentPage() {
     } catch {
       toast.error("Failed to close tournament");
     } finally {
-      setClosing(false);
+      setClosingId(null);
     }
   };
 
@@ -104,7 +108,7 @@ export default function AdminTournamentPage() {
     }
   };
 
-  const activeTournament = tournaments.find((t) => t.status === "active");
+  const activeTournaments = tournaments.filter((t) => t.status === "active");
 
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
@@ -165,8 +169,8 @@ export default function AdminTournamentPage() {
         <div className="py-12 text-center text-sm text-muted-foreground">No tournaments yet</div>
       ) : (
         <div className="space-y-8">
-          {activeTournament && (
-            <div className="rounded-xl border border-amber-800/30 bg-amber-900/20 p-5">
+          {activeTournaments.map((activeTournament) => (
+            <div key={activeTournament.id} className="rounded-xl border border-amber-800/30 bg-amber-900/20 p-5">
               <div className="flex items-center gap-2 mb-4">
                 <Trophy className="h-5 w-5 text-amber-400" />
                 <h2 className="text-lg font-semibold text-foreground">Active Tournament</h2>
@@ -197,16 +201,16 @@ export default function AdminTournamentPage() {
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={handleClose}
-                  disabled={closing}
+                  onClick={() => handleClose(activeTournament.id)}
+                  disabled={closingId === activeTournament.id}
                   className="bg-red-900/40 text-red-400 hover:bg-red-900/60 border border-red-800/30"
                 >
-                  {closing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  {closing ? "Closing..." : "Close Tournament"}
+                  {closingId === activeTournament.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  {closingId === activeTournament.id ? "Closing..." : "Close Tournament"}
                 </Button>
               </div>
             </div>
-          )}
+          ))}
 
           {tournaments.map((t) => (
             <div key={t.id} className="rounded-xl border border-emerald-800/30 bg-emerald-900/20 p-5">

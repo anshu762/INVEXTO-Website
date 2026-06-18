@@ -76,6 +76,7 @@ export function RegisterForm({ tournamentId }: Props) {
         body: JSON.stringify({
           phone: pendingData.phone,
           upiId: pendingData.upiId,
+          tournamentId,
         }),
       });
       const json = await res.json();

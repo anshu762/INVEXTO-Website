@@ -10,13 +10,22 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
     }
 
-    const tournament = await prisma.tournament.findFirst({
-      where: { status: "active" },
+    const { tournamentId } = await request.json();
+
+    if (!tournamentId) {
+      return NextResponse.json(
+        { success: false, error: "Tournament ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: tournamentId },
     });
 
-    if (!tournament) {
+    if (!tournament || tournament.status !== "active") {
       return NextResponse.json(
-        { success: false, error: "No active tournament" },
+        { success: false, error: "Tournament is not active or does not exist" },
         { status: 404 }
       );
     }

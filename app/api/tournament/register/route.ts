@@ -5,7 +5,7 @@ import { requireSession } from "@/src/lib/session";
 export async function POST(req: NextRequest) {
   try {
     const user = await requireSession(req);
-    const { phone, upiId } = await req.json();
+    const { phone, upiId, tournamentId } = await req.json();
 
     if (!phone || !/^\d{10}$/.test(phone)) {
       return NextResponse.json(
@@ -21,13 +21,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const tournament = await prisma.tournament.findFirst({
-      where: { status: "active" },
+    if (!tournamentId) {
+      return NextResponse.json(
+        { success: false, error: "Tournament ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: tournamentId },
     });
 
-    if (!tournament) {
+    if (!tournament || tournament.status !== "active") {
       return NextResponse.json(
-        { success: false, error: "No active tournament right now" },
+        { success: false, error: "Tournament is not active or does not exist" },
         { status: 400 }
       );
     }

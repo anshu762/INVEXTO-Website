@@ -22,6 +22,7 @@ export default function AdminTournamentPage() {
   const [tournaments, setTournaments] = useState<TournamentData[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   const fetchData = () => {
     setLoading(true);
@@ -53,6 +54,24 @@ export default function AdminTournamentPage() {
       toast.error("Failed to create tournament");
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleClose = async () => {
+    setClosing(true);
+    try {
+      const res = await fetch("/api/tournament/close", { method: "PATCH" });
+      const json = await res.json();
+      if (json.success) {
+        toast.success("Tournament closed!");
+        fetchData();
+      } else {
+        toast.error(json.error);
+      }
+    } catch {
+      toast.error("Failed to close tournament");
+    } finally {
+      setClosing(false);
     }
   };
 
@@ -144,6 +163,18 @@ export default function AdminTournamentPage() {
                       .join(" | ")}
                   </p>
                 </div>
+              </div>
+              <div className="mt-4 flex justify-end">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleClose}
+                  disabled={closing}
+                  className="bg-red-900/40 text-red-400 hover:bg-red-900/60 border border-red-800/30"
+                >
+                  {closing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  {closing ? "Closing..." : "Close Tournament"}
+                </Button>
               </div>
             </div>
           )}

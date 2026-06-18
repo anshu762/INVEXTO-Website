@@ -8,7 +8,6 @@ import { RegisterForm } from "@/components/tournament/RegisterForm";
 import { CountdownTimer } from "@/components/tournament/CountdownTimer";
 import { prisma } from "@/src/lib/prisma";
 import { verifyToken } from "@/src/lib/auth";
-import { TournamentAdminPanel } from "@/components/tournament/TournamentAdminPanel";
 
 function getNextMonthStart(): Date {
   const now = new Date();
@@ -98,9 +97,6 @@ export default async function TournamentPage() {
             Login
           </Link>
         </main>
-        <div className="mx-auto max-w-md px-4">
-          <TournamentAdminPanel />
-        </div>
       </>
     );
   }
@@ -134,16 +130,7 @@ export default async function TournamentPage() {
           <div className="my-8 flex justify-center">
             <CountdownTimer targetDate={nextMonth} />
           </div>
-          {lastTournament && (
-            <Link
-              href={`/tournament/results/${lastTournament.id}`}
-              className="inline-flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
-            >
-              View Previous Results
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          )}
-          <TournamentAdminPanel />
+
         </main>
       </>
     );
@@ -171,7 +158,6 @@ export default async function TournamentPage() {
             />
             <RegisterForm tournamentId={data.tournament.id} />
           </div>
-          <TournamentAdminPanel />
         </main>
       </>
     );
@@ -243,7 +229,6 @@ export default async function TournamentPage() {
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
-        <TournamentAdminPanel />
       </main>
     </>
   );

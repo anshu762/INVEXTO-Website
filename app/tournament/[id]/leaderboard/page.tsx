@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import { TrendingUp, TrendingDown, Trophy, RefreshCw, Clock, Users, ArrowLeft } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
@@ -24,16 +24,17 @@ interface LeaderboardData {
   tournament: { startDate: string; endDate: string; prizePool: Record<string, unknown> } | null;
 }
 
-export default function LeaderboardPage() {
+export default function LeaderboardPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { user } = useAuth();
+  const { id } = use(params);
   const [data, setData] = useState<LeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [secondsAgo, setSecondsAgo] = useState(0);
 
   const fetchLeaderboard = useCallback(async () => {
     try {
-      const res = await fetch("/api/tournament/leaderboard");
+      const res = await fetch(`/api/tournament/leaderboard/${id}`);
       const json = await res.json();
       if (json.success && json.data) {
         setData(json.data);
@@ -44,7 +45,7 @@ export default function LeaderboardPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     fetchLeaderboard();
@@ -86,11 +87,11 @@ export default function LeaderboardPage() {
       <Navbar />
       <main className="relative mx-auto max-w-5xl px-4 py-8">
         <button
-          onClick={() => router.push("/tournament")}
+          onClick={() => router.push(`/tournament/${id}`)}
           className="mb-4 flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
+          Back to Tournament
         </button>
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -212,8 +213,6 @@ export default function LeaderboardPage() {
             </div>
           </div>
         )}
-
-
       </main>
     </>
   );

@@ -134,85 +134,64 @@ export default async function TournamentPage() {
           </div>
         </main>
       ) : (
-        <main className="mx-auto max-w-5xl px-4 py-8">
-          <div className="mb-10 text-center">
-            <h1 className="text-3xl font-bold text-white">Active Tournaments</h1>
-            <p className="mt-2 text-sm text-gray-500">
-              Join multiple tournaments and compete for real prizes
-            </p>
+        <main className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center gap-3 mb-8 mt-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-900/30">
+              <Trophy className="h-5 w-5 text-emerald-400" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Active Tournaments</h1>
+              <p className="mt-1 text-xs text-gray-400">
+                Join multiple tournaments and compete for real prizes
+              </p>
+            </div>
           </div>
           
-          <div className="space-y-12">
+          <div className="flex flex-col gap-4">
             {data.activeTournaments.map((entry) => (
-              <div key={entry.tournament.id} className="relative pb-12 border-b border-emerald-900/30 last:border-0 last:pb-0">
-                <div className="mb-6 flex items-center justify-between">
-                   <h2 className="text-xl font-bold text-emerald-400 flex items-center gap-2">
-                     <Trophy className="h-5 w-5" />
-                     {new Date(entry.tournament.startDate).toLocaleDateString("en-IN", { month: "long", year: "numeric" })} Tournament
-                   </h2>
-                   {entry.registration && (
-                     <span className="rounded-full bg-emerald-900/50 px-3 py-1 text-xs font-semibold text-emerald-400 border border-emerald-700/50">
-                       Registered
-                     </span>
-                   )}
+              <div 
+                key={entry.tournament.id} 
+                className="group relative flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-2xl border border-emerald-800/30 bg-gradient-to-r from-emerald-950/40 to-gray-900/40 p-6 transition-all hover:border-emerald-700/50 hover:bg-emerald-900/20 hover:shadow-[0_0_30px_-10px_rgba(16,185,129,0.15)] overflow-hidden"
+              >
+                <div className="absolute left-0 top-0 h-full w-1 bg-emerald-600/50 transition-all group-hover:w-1.5 group-hover:bg-emerald-400" />
+                
+                <div className="pl-2">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1.5">
+                    {new Date(entry.tournament.startDate).toLocaleDateString("en-IN", { month: "long", year: "numeric" })}
+                  </p>
+                  
+                  <h3 className="text-lg font-bold text-white mb-1">
+                    {new Date(entry.tournament.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} —{" "}
+                    {new Date(entry.tournament.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                  </h3>
+                  
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-gray-400">
+                    <span className="flex items-center gap-1.5">
+                      <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      {entry.totalParticipants} Participants
+                    </span>
+                    <span className="hidden sm:inline">•</span>
+                    <span className="rounded bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/30">
+                      LIVE
+                    </span>
+                    {entry.registration && (
+                      <>
+                        <span className="hidden sm:inline">•</span>
+                        <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
+                          REGISTERED
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
 
-                {!entry.registration ? (
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <TournamentRulesCard
-                      tournament={{
-                        startDate: entry.tournament.startDate.toISOString(),
-                        endDate: entry.tournament.endDate.toISOString(),
-                        prizePool: entry.tournament.prizePool as Record<string, unknown>,
-                      }}
-                      totalParticipants={entry.totalParticipants}
-                    />
-                    <RegisterForm tournamentId={entry.tournament.id} />
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    <div className="rounded-2xl border border-emerald-700/30 bg-emerald-900/30 p-5">
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-600/20">
-                            <Trophy className="h-5 w-5 text-emerald-400" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold text-emerald-300">
-                              You are locked in!
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              {entry.totalParticipants} participants competing
-                            </p>
-                          </div>
-                        </div>
-                        <Link
-                          href="/tournament/leaderboard"
-                          className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500"
-                        >
-                          View Leaderboard
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </Link>
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-emerald-800/30 bg-gradient-to-br from-emerald-900/20 to-gray-950 p-6">
-                      <h3 className="mb-4 text-lg font-bold text-white">Your Portfolio for this Tournament</h3>
-                      {entry.portfolio ? (
-                        <div className="rounded-xl border border-emerald-800/20 bg-emerald-950/30 p-4">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-400">Cash Balance</span>
-                            <span className="text-lg font-bold text-emerald-400">
-                              {formatINR(entry.portfolio.cashBalance)}
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-gray-500">Loading portfolio...</p>
-                      )}
-                    </div>
-                  </div>
-                )}
+                <Link
+                  href={`/tournament/${entry.tournament.id}`}
+                  className="mt-5 sm:mt-0 inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-emerald-600/10 border border-emerald-600/20 px-5 py-2.5 text-sm font-semibold text-emerald-400 transition-all hover:bg-emerald-600 hover:text-white"
+                >
+                  {entry.registration ? "View Portfolio" : "Join Tournament"}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </div>
             ))}
           </div>

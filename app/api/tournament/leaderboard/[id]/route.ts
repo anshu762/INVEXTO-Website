@@ -3,22 +3,25 @@ import { prisma } from "@/src/lib/prisma";
 import { fetchQuote } from "@/src/lib/yahoo-finance";
 import { SimpleCache } from "@/src/lib/simple-cache";
 
-export async function GET() {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const cached = SimpleCache.get<any>("tournament:leaderboard");
+    const { id: tournamentId } = await params;
+    const cacheKey = `tournament:leaderboard:${tournamentId}`;
+    const cached = SimpleCache.get<any>(cacheKey);
+    
     if (cached) {
       return NextResponse.json({ success: true, data: cached });
     }
 
-    const tournament = await prisma.tournament.findFirst({
-      where: { status: "active" },
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: tournamentId },
     });
 
     if (!tournament) {
       return NextResponse.json({
-        success: true,
-        data: { leaderboard: [], totalParticipants: 0, lastUpdated: new Date().toISOString(), tournament: null },
-      });
+        success: false,
+        error: "Tournament not found",
+      }, { status: 404 });
     }
 
     const registrations = await prisma.tournamentRegistration.findMany({
@@ -102,7 +105,7 @@ export async function GET() {
       },
     };
 
-    SimpleCache.set("tournament:leaderboard", data, 120);
+    SimpleCache.set(cacheKey, data, 120);
 
     return NextResponse.json({ success: true, data });
   } catch (error) {

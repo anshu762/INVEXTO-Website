@@ -35,10 +35,33 @@ export async function POST(
     }
 
     if (portfolio.inTournament) {
-      return NextResponse.json(
-        { success: false, error: "Simulations are disabled during tournament mode." },
-        { status: 400 }
-      );
+      if (portfolio.tournamentId) {
+        const tournament = await prisma.tournament.findUnique({
+          where: { id: portfolio.tournamentId },
+        });
+        
+        if (tournament && tournament.status === "active") {
+          return NextResponse.json(
+            { success: false, error: "Simulations are disabled during tournament mode." },
+            { status: 400 }
+          );
+        } else if (tournament && tournament.status === "completed") {
+          // Auto-release portfolio if the tournament is already completed
+          await prisma.portfolio.update({
+            where: { id: portfolio.id },
+            data: { inTournament: false, tournamentId: null },
+          });
+          portfolio.inTournament = false;
+          portfolio.tournamentId = null;
+        }
+      } else {
+        // Fallback for legacy stuck portfolios
+        await prisma.portfolio.update({
+          where: { id: portfolio.id },
+          data: { inTournament: false },
+        });
+        portfolio.inTournament = false;
+      }
     }
 
     const snapshot = {

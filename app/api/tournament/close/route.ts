@@ -30,10 +30,16 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    await prisma.tournament.update({
-      where: { id: tournament.id },
-      data: { status: "completed" },
-    });
+    await prisma.$transaction([
+      prisma.tournament.update({
+        where: { id: tournament.id },
+        data: { status: "completed" },
+      }),
+      prisma.portfolio.updateMany({
+        where: { tournamentId: tournament.id },
+        data: { inTournament: false, tournamentId: null },
+      }),
+    ]);
 
     return NextResponse.json({ success: true });
   } catch (error) {

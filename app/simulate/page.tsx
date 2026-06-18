@@ -8,6 +8,7 @@ import EventSelector from "@/src/components/simulate/EventSelector";
 import SimDashboard from "@/src/components/simulate/SimDashboard";
 import SimResults from "@/src/components/simulate/SimResults";
 import { Gamepad2, X } from "lucide-react";
+import { toast } from "sonner";
 
 function simReducer(state: SimState, action: SimAction): SimState {
   switch (action.type) {
@@ -139,17 +140,18 @@ export default function SimulatePage() {
 
   const handleSelectEvent = useCallback(
     async (eventId: string) => {
-      if (tournamentActive) return;
       const res = await apiPost<SimStartData>(`/api/simulations/${eventId}/start`, {});
       if (res.success && res.data) {
         dispatch({ type: "START", payload: res.data });
       } else {
         if (res.error?.includes("already in progress")) {
           setActiveSim({ eventId, startedAt: new Date().toISOString() });
+        } else if (res.error) {
+          toast.error(res.error);
         }
       }
     },
-    [tournamentActive]
+    []
   );
 
   if (state.phase === "finished") {

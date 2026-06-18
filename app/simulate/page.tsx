@@ -160,6 +160,15 @@ export default function SimulatePage() {
 
   return (
     <main className="min-h-screen bg-gray-950">
+      <style dangerouslySetInnerHTML={{__html: `
+        body::-webkit-scrollbar {
+          display: none;
+        }
+        body {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}} />
       {showBanner && (
         <div className="bg-amber-900/30 border-b border-amber-700/30 px-4 py-3">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">

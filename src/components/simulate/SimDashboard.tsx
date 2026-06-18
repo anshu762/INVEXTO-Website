@@ -427,7 +427,7 @@ export default function SimDashboard({ state, dispatch }: Props) {
                   )}
                 </div>
               </div>
-              <div className="max-h-[480px] overflow-y-auto">
+              <div className="max-h-[480px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 <table className="w-full text-sm">
                   <thead className="sticky top-0 bg-gray-900/95 text-[10px] font-medium uppercase tracking-wider text-gray-500 backdrop-blur-sm">
                     <tr>
@@ -534,7 +534,7 @@ export default function SimDashboard({ state, dispatch }: Props) {
                     <p className="text-[11px] text-gray-700">Buy stocks from the market watch panel</p>
                   </div>
                 ) : (
-                  <div className="max-h-[400px] overflow-y-auto">
+                  <div className="max-h-[400px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                     <table className="w-full text-sm">
                       <thead className="sticky top-0 bg-gray-900/95 text-[10px] font-medium uppercase tracking-wider text-gray-500 backdrop-blur-sm">
                         <tr>
@@ -586,7 +586,7 @@ export default function SimDashboard({ state, dispatch }: Props) {
                     <p className="text-[11px] text-gray-700">Your trade history will appear here</p>
                   </div>
                 ) : (
-                  <div ref={feedRef} className="max-h-[400px] space-y-0.5 overflow-y-auto p-2">
+                  <div ref={feedRef} className="max-h-[400px] space-y-0.5 overflow-y-auto p-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                     {[...state.transactions].reverse().map((tx, i) => (
                       <div
                         key={i}
@@ -791,30 +791,31 @@ export default function SimDashboard({ state, dispatch }: Props) {
               Simulation Complete
             </DialogTitle>
             <DialogDescription className="text-center">
-              {resultData && (
-                <div className="mt-4 space-y-3">
-                  <div>
-                    <p className="text-xs text-gray-500">Final Portfolio Value</p>
-                    <p className="text-3xl font-bold text-white">
-                      {formatINR(resultData.finalValue)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Gain / Loss</p>
-                    <p className={`text-xl font-bold ${
-                      resultData.gainLoss >= 0 ? "text-emerald-400" : "text-red-400"
-                    }`}>
-                      {resultData.gainLoss >= 0 ? "+" : ""}{formatINR(resultData.gainLoss)}
-                      <span className="text-sm ml-1">
-                        ({resultData.gainLoss >= 0 ? "+" : ""}
-                        {formatPercent((resultData.gainLoss / STARTING_CASH) * 100)})
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              )}
+              Your final performance for this event.
             </DialogDescription>
           </DialogHeader>
+          {resultData && (
+            <div className="mt-1 space-y-3 text-center">
+              <div>
+                <p className="text-xs text-gray-500">Final Portfolio Value</p>
+                <p className="text-3xl font-bold text-white">
+                  {formatINR(resultData.finalValue)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Gain / Loss</p>
+                <p className={`text-xl font-bold ${
+                  resultData.gainLoss >= 0 ? "text-emerald-400" : "text-red-400"
+                }`}>
+                  {resultData.gainLoss >= 0 ? "+" : ""}{formatINR(resultData.gainLoss)}
+                  <span className="text-sm ml-1">
+                    ({resultData.gainLoss >= 0 ? "+" : ""}
+                    {formatPercent((resultData.gainLoss / STARTING_CASH) * 100)})
+                  </span>
+                </p>
+              </div>
+            </div>
+          )}
           <DialogFooter>
             <Button
               onClick={() => router.push("/portfolio")}

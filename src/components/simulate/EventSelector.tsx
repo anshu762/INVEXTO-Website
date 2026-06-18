@@ -98,9 +98,7 @@ export default function EventSelector({ onSelect }: Props) {
             <div>
               <p className="text-sm font-semibold text-blue-300">Pro Tip</p>
               <p className="mt-1 text-sm leading-relaxed text-blue-200/70">
-                Research the event before investing! Explore which stocks historically did better
-                or worse during each event to maximise your gains. Not all stocks fall equally in a
-                crash — some sectors are more resilient than others.
+                Research the event and explore which stocks did better than others during the event to maximise gains.
               </p>
             </div>
           </div>

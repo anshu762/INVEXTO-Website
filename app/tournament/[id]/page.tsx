@@ -92,28 +92,35 @@ export default async function TournamentDetailsPage({ params }: { params: Promis
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <main className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8">
         <Link
           href="/tournament"
-          className="mb-6 inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors"
+          className="mb-4 inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Tournaments
         </Link>
 
-        <div className="mb-8 border-b border-emerald-900/30 pb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="rounded bg-amber-500/20 px-2.5 py-1 text-xs font-bold text-amber-400 border border-amber-500/30">
-              LIVE
-            </span>
-            <h1 className="text-3xl font-bold text-white flex items-center gap-2">
-              {new Date(data.tournament.startDate).toLocaleDateString("en-IN", { month: "long", year: "numeric" })} Tournament
-            </h1>
+        <div className="mb-8 mt-2 flex flex-wrap items-center justify-between gap-4 border-b border-emerald-900/30 pb-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-900/30">
+              <Trophy className="h-5 w-5 text-emerald-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-white">
+                  {new Date(data.tournament.startDate).toLocaleDateString("en-IN", { month: "long", year: "numeric" })} Tournament
+                </h1>
+                <span className="rounded bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/30">
+                  LIVE
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-gray-400">
+                {new Date(data.tournament.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} —{" "}
+                {new Date(data.tournament.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+              </p>
+            </div>
           </div>
-          <p className="text-gray-400 mt-2">
-             {new Date(data.tournament.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} —{" "}
-             {new Date(data.tournament.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-          </p>
         </div>
 
         {!data.registration ? (

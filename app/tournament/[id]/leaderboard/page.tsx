@@ -85,7 +85,7 @@ export default function LeaderboardPage({ params }: { params: Promise<{ id: stri
   return (
     <>
       <Navbar />
-      <main className="relative mx-auto max-w-5xl px-4 py-8">
+      <main className="relative mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8">
         <button
           onClick={() => router.push(`/tournament/${id}`)}
           className="mb-4 flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors"
@@ -93,15 +93,20 @@ export default function LeaderboardPage({ params }: { params: Promise<{ id: stri
           <ArrowLeft className="h-4 w-4" />
           Back to Tournament
         </button>
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Leaderboard</h1>
-            {tournamentPeriod && (
-              <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
-                <Clock className="h-3 w-3" />
-                {tournamentPeriod}
-              </p>
-            )}
+        <div className="mb-8 mt-2 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-900/30">
+              <Trophy className="h-5 w-5 text-emerald-400" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Leaderboard</h1>
+              {tournamentPeriod && (
+                <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-400">
+                  <Clock className="h-3 w-3" />
+                  {tournamentPeriod}
+                </p>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-xs text-gray-600">

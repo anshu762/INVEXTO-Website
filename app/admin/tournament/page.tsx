@@ -166,11 +166,14 @@ export default function AdminTournamentPage() {
                       Rank {rank} (₹)
                     </label>
                     <input
-                      type="number"
-                      min="0"
-                      value={prizes[rank.toString() as keyof typeof prizes]}
-                      onChange={(e) => setPrizes(prev => ({ ...prev, [rank.toString()]: parseInt(e.target.value) || 0 }))}
-                      className="w-full rounded-lg border border-emerald-800/30 bg-emerald-950/50 px-2 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      type="text"
+                      inputMode="numeric"
+                      value={prizes[rank.toString() as keyof typeof prizes] || ""}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '');
+                        setPrizes(prev => ({ ...prev, [rank.toString()]: val ? parseInt(val, 10) : 0 }));
+                      }}
+                      className="w-full rounded-lg border border-emerald-800/30 bg-emerald-950/50 px-2 py-1.5 text-xs text-foreground outline-none focus:border-emerald-500/50"
                     />
                   </div>
                 ))}

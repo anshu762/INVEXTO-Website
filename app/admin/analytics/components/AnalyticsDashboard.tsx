@@ -88,14 +88,14 @@ export function AnalyticsDashboard() {
       <KPIStatsCards data={data?.overview} loading={loading} />
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <VisitorCharts data={data?.visitors} loading={loading} />
+        <VisitorCharts data={data?.visitors || []} loading={loading} />
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <CountryCharts data={data?.countries} loading={loading} />
+        <CountryCharts data={data?.countries || []} loading={loading} />
       </div>
 
-      <RecentVisitsTable data={data?.recent} loading={loading} />
+      <RecentVisitsTable data={data?.recent || []} loading={loading} />
     </div>
   );
 }

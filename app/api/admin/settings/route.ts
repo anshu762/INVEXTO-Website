@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     }
 
     const settings = await prisma.systemSetting.findMany();
-    const settingsMap = settings.reduce((acc, s) => ({ ...acc, [s.key]: s.value }), {});
+    const settingsMap = settings.reduce<Record<string, string>>((acc, s) => ({ ...acc, [s.key]: s.value }), {});
     
     // Set default if not exists
     if (!settingsMap["requireOtpRegistration"]) {

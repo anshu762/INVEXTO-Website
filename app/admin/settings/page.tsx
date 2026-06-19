@@ -5,7 +5,6 @@ import { ArrowLeft, ShieldAlert, KeyRound, Loader2, Shield } from "lucide-react"
 import Link from "next/link";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/src/hooks/useAuth";
 
 const SUPER_ADMIN_EMAIL = "anubhavsinghbkj@gmail.com";
@@ -111,88 +110,91 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6">
         <Link href="/admin" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" /> Back to Dashboard
         </Link>
-        <h1 className="text-3xl font-bold tracking-tight">System Settings</h1>
-        <p className="text-muted-foreground mt-1">Manage global platform configurations and access.</p>
+        <div className="mt-2 flex items-center gap-3">
+          <ShieldAlert className="h-6 w-6 text-amber-400" />
+          <div>
+            <h1 className="text-xl font-bold text-foreground">System Settings</h1>
+            <p className="text-sm text-muted-foreground">Manage global platform configurations and access.</p>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-6">
         {/* Auth Settings */}
-        <Card>
-          <CardHeader>
+        <div className="rounded-xl border border-emerald-800/30 bg-emerald-900/20 p-5">
+          <div className="mb-4">
             <div className="flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-amber-500" />
-              <CardTitle>Authentication Settings</CardTitle>
+              <h2 className="text-lg font-semibold text-foreground">Authentication Settings</h2>
             </div>
-            <CardDescription>Configure how users register and authenticate on the platform.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between rounded-lg border border-border bg-card/50 p-4">
-              <div className="space-y-0.5">
-                <label className="text-base font-medium">Require OTP Verification</label>
-                <p className="text-sm text-muted-foreground">
-                  If disabled, new users will bypass email verification and be logged in immediately.
-                </p>
-              </div>
-              <Switch checked={requireOtp} onCheckedChange={toggleOtp} />
+            <p className="text-sm text-muted-foreground">Configure how users register and authenticate on the platform.</p>
+          </div>
+          
+          <div className="flex items-center justify-between rounded-lg border border-emerald-800/30 bg-emerald-950/30 p-4">
+            <div className="space-y-0.5">
+              <label className="text-base font-medium text-foreground">Require OTP Verification</label>
+              <p className="text-sm text-muted-foreground">
+                If disabled, new users will bypass email verification and be logged in immediately.
+              </p>
             </div>
-          </CardContent>
-        </Card>
+            <Switch checked={requireOtp} onCheckedChange={toggleOtp} />
+          </div>
+        </div>
 
         {/* Super Admin Section */}
         {isSuperAdmin && (
-          <Card>
-            <CardHeader>
+          <div className="rounded-xl border border-emerald-800/30 bg-emerald-900/20 p-5">
+            <div className="mb-4">
               <div className="flex items-center gap-2">
                 <ShieldAlert className="h-5 w-5 text-destructive" />
-                <CardTitle>Super Admin Management</CardTitle>
+                <h2 className="text-lg font-semibold text-foreground">Super Admin Management</h2>
               </div>
-              <CardDescription>Grant or revoke administrator privileges for user accounts.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loadingUsers ? (
-                <div className="flex h-32 items-center justify-center">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : (
-                <div className="rounded-md border border-border">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border bg-muted/50">
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">User</th>
-                        <th className="px-4 py-3 text-left font-medium text-muted-foreground">Email</th>
-                        <th className="px-4 py-3 text-right font-medium text-muted-foreground">Admin Access</th>
+              <p className="text-sm text-muted-foreground">Grant or revoke administrator privileges for user accounts.</p>
+            </div>
+            
+            {loadingUsers ? (
+              <div className="flex h-32 items-center justify-center">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border border-emerald-800/30">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-emerald-800/30 bg-emerald-900/40">
+                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">User</th>
+                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Email</th>
+                      <th className="px-4 py-3 text-right font-medium text-muted-foreground">Admin Access</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((u) => (
+                      <tr key={u.id} className="border-b border-emerald-800/10 last:border-0 hover:bg-emerald-900/10">
+                        <td className="px-4 py-3 font-medium flex items-center gap-2 text-foreground">
+                          {u.name}
+                          {u.email === SUPER_ADMIN_EMAIL && (
+                            <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] text-amber-500 font-bold">Super Admin</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
+                        <td className="px-4 py-3 text-right">
+                          <Switch 
+                            checked={u.isAdmin} 
+                            disabled={u.email === SUPER_ADMIN_EMAIL || updatingId === u.id}
+                            onCheckedChange={() => toggleAdminRole(u.id, u.email, u.isAdmin)}
+                          />
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {users.map((u) => (
-                        <tr key={u.id} className="border-b border-border last:border-0 hover:bg-muted/30">
-                          <td className="px-4 py-3 font-medium flex items-center gap-2">
-                            {u.name}
-                            {u.email === SUPER_ADMIN_EMAIL && (
-                              <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] text-amber-500">Super Admin</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
-                          <td className="px-4 py-3 text-right">
-                            <Switch 
-                              checked={u.isAdmin} 
-                              disabled={u.email === SUPER_ADMIN_EMAIL || updatingId === u.id}
-                              onCheckedChange={() => toggleAdminRole(u.id, u.email, u.isAdmin)}
-                            />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </main>

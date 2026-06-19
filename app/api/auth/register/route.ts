@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { signToken, hashPassword } from "@/src/lib/auth";
 import type { ApiResponse, User } from "@/src/types";
-
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import { sendOtpEmail } from "@/src/lib/email";
 
 export async function POST(request: Request) {
@@ -50,7 +50,6 @@ export async function POST(request: Request) {
       const otp = crypto.randomInt(100000, 999999).toString();
       const otpExpires = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
 
-      const jwt = require("jsonwebtoken");
       const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
       const pendingToken = jwt.sign(
         { name, email, passwordHash, upiId: upiId || null, otp, otpExpires },

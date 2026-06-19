@@ -1,4 +1,3 @@
-export const dynamic = 'force-dynamic';
 import { Shield, Users, Trophy } from "lucide-react";
 import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
@@ -7,20 +6,16 @@ import { cookies } from "next/headers";
 import { verifyToken } from "@/src/lib/auth";
 import { redirect } from "next/navigation";
 
-// async function checkAdmin(): Promise<void> {
-//   const cookieStore = await cookies();
-//   const token = cookieStore.get("invexto_token")?.value;
-//   if (!token) redirect("/");
-//   const payload = verifyToken(token);
-//   if (!payload?.isAdmin) redirect("/");
-// }
-
-export default async function AdminDashboard() {
+async function checkAdmin(): Promise<void> {
   const cookieStore = await cookies();
   const token = cookieStore.get("invexto_token")?.value;
   if (!token) redirect("/");
   const payload = verifyToken(token);
   if (!payload?.isAdmin) redirect("/");
+}
+
+export default async function AdminDashboard() {
+  await checkAdmin();
 
   const totalUsers = await prisma.user.count();
   const activeParticipants = await prisma.tournamentRegistration.count({

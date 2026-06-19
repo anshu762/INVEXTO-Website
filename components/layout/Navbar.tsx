@@ -78,13 +78,13 @@ export function Navbar() {
                   
                   <div className="space-y-1">
                     {(user as any).isAdmin && (
-                      <a
+                      <Link
                         href="/admin"
                         className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-emerald-200 hover:bg-emerald-800/50 hover:text-white transition-colors"
                       >
                         <Shield className="h-4 w-4 text-emerald-400" />
                         Admin Dashboard
-                      </a>
+                      </Link>
                     )}
                     <button
                       onClick={logout}
@@ -154,14 +154,14 @@ export function Navbar() {
               </Link>
             ))}
             {(user as any).isAdmin && (
-              <a
+              <Link
                 href="/admin"
                 onClick={() => setMobileOpen(false)}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-emerald-800/50 hover:text-white"
               >
                 <Shield className="h-4 w-4" />
                 Admin
-              </a>
+              </Link>
             )}
             <hr className="border-emerald-800/40" />
             <div className="flex items-center gap-3 px-3 py-2">

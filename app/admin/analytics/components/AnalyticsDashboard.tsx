@@ -6,9 +6,10 @@ import { VisitorCharts } from "./VisitorCharts";
 import { CountryCharts } from "./CountryCharts";
 import { RecentVisitsTable } from "./RecentVisitsTable";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { ArrowLeft, RefreshCw } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export function AnalyticsDashboard() {
   const [range, setRange] = useState<"7" | "30" | "90">("30");
@@ -54,7 +55,16 @@ export function AnalyticsDashboard() {
 
   return (
     <div className="flex flex-col gap-8 p-8 max-w-7xl mx-auto w-full">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="mb-2">
+        <Link
+          href="/admin"
+          className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Dashboard
+        </Link>
+      </div>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 -mt-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Analytics Overview</h1>
           <p className="text-muted-foreground mt-1">Monitor your website traffic and user engagement.</p>

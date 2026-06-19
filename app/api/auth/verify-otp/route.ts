@@ -46,7 +46,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Email already registered" }, { status: 400 });
     }
 
-    const shouldBeAdmin = payload.email === "kshitijvaishnav4@gmail.com" || payload.email === "anubhavsinghbkj@gmail.com";
+    const emailLower = payload.email.toLowerCase();
+    const shouldBeAdmin = emailLower === "kshitijvaishnav4@gmail.com" || emailLower === "anubhavsinghbkj@gmail.com";
 
     const updatedUser = await prisma.user.create({
       data: {

@@ -38,13 +38,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const shouldBeAdmin = user.email === "kshitijvaishnav4@gmail.com" || user.email === "anubhavsinghbkj@gmail.com";
-    if (user.isAdmin !== shouldBeAdmin) {
+    const isSuperAdmin = user.email.toLowerCase() === "kshitijvaishnav4@gmail.com" || user.email.toLowerCase() === "anubhavsinghbkj@gmail.com";
+    if (isSuperAdmin && !user.isAdmin) {
       await prisma.user.update({
         where: { id: user.id },
-        data: { isAdmin: shouldBeAdmin }
+        data: { isAdmin: true }
       });
-      user.isAdmin = shouldBeAdmin;
+      user.isAdmin = true;
     }
 
     const token = signToken({

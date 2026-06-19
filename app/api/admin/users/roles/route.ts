@@ -8,7 +8,7 @@ export async function PATCH(req: NextRequest) {
   try {
     const user = await requireSession(req);
     
-    if (user.email !== SUPER_ADMIN_EMAIL) {
+    if (user.email.toLowerCase() !== SUPER_ADMIN_EMAIL.toLowerCase()) {
       return NextResponse.json({ error: "Forbidden: Super Admin access required" }, { status: 403 });
     }
 

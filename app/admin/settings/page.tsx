@@ -53,8 +53,6 @@ export default function AdminSettingsPage() {
   }, [isSuperAdmin]);
 
   const toggleOtp = async (checked: boolean) => {
-    if (!confirm(`Are you sure you want to ${checked ? 'enable' : 'disable'} OTP verification for new registrations?`)) return;
-    
     setRequireOtp(checked);
     try {
       const res = await fetch("/api/admin/settings", {
@@ -76,12 +74,10 @@ export default function AdminSettingsPage() {
 
   const toggleAdminRole = async (targetUserId: string, targetEmail: string, currentStatus: boolean) => {
     const newStatus = !currentStatus;
-    if (targetEmail === SUPER_ADMIN_EMAIL) {
+    if (targetEmail.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) {
       toast.error("Cannot modify the Super Admin");
       return;
     }
-    
-    if (!confirm(`Are you sure you want to ${newStatus ? 'GRANT' : 'REVOKE'} admin access for ${targetEmail}?`)) return;
 
     setUpdatingId(targetUserId);
     try {
@@ -184,7 +180,7 @@ export default function AdminSettingsPage() {
                         <td className="px-4 py-3 text-right">
                           <Switch 
                             checked={u.isAdmin} 
-                            disabled={u.email === SUPER_ADMIN_EMAIL || updatingId === u.id}
+                            disabled={u.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase() || updatingId === u.id}
                             onCheckedChange={() => toggleAdminRole(u.id, u.email, u.isAdmin)}
                           />
                         </td>

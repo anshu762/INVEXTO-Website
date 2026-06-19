@@ -68,7 +68,7 @@ export default async function AdminDashboard() {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Link
             href="/admin/users"
             className="group rounded-xl border border-emerald-800/30 bg-emerald-900/20 p-5 transition-all hover:border-emerald-700/50 hover:bg-emerald-900/40"
@@ -100,6 +100,17 @@ export default async function AdminDashboard() {
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Monitor website traffic, visitors, top countries, and platform usage
+            </p>
+          </Link>
+          <Link
+            href="/admin/settings"
+            className="group rounded-xl border border-emerald-800/30 bg-emerald-900/20 p-5 transition-all hover:border-emerald-700/50 hover:bg-emerald-900/40"
+          >
+            <h2 className="text-lg font-semibold text-foreground group-hover:text-amber-400 transition-colors">
+              Settings
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Manage global authentication settings and Super Admin roles
             </p>
           </Link>
         </div>

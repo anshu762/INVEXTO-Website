@@ -23,8 +23,12 @@ export default function RegisterPage() {
     if (!res.success) {
       toast.error(res.error || "Registration failed");
     } else {
-      toast.success("OTP sent to your email");
-      setRegisteredEmail(data.email);
+      if (res.data?.bypassedOtp) {
+        toast.success("Account created successfully!");
+      } else {
+        toast.success("OTP sent to your email");
+        setRegisteredEmail(data.email);
+      }
     }
   };
 

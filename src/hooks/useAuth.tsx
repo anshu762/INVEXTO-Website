@@ -23,7 +23,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<ApiResponse<User>>;
-  register: (data: RegisterData) => Promise<ApiResponse<{email: string}>>;
+  register: (data: RegisterData) => Promise<ApiResponse<{email?: string, bypassedOtp?: boolean}>>;
   verifyOtp: (email: string, otp: string) => Promise<ApiResponse<User>>;
   logout: () => Promise<void>;
 }
@@ -58,11 +58,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(
     async (data: RegisterData) => {
-      // The register endpoint now just sends an OTP and doesn't return the full user yet
-      const res = await apiPost<{email: string}>("/api/auth/register", data);
+      const res = await apiPost<{email?: string, bypassedOtp?: boolean}>("/api/auth/register", data);
+      if (res.success && res.data?.bypassedOtp) {
+        apiGet<User>("/api/auth/me").then((meRes) => {
+          if (meRes.success && meRes.data) {
+            setUser(meRes.data);
+          }
+        });
+        router.push("/stocks");
+      }
       return res;
     },
-    []
+    [router]
   );
 
   const verifyOtp = useCallback(

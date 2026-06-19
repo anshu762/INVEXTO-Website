@@ -43,36 +43,53 @@ export async function POST(request: Request) {
 
     const passwordHash = await hashPassword(password);
     
-    // Generate a 6-digit numeric OTP
-    const otp = crypto.randomInt(100000, 999999).toString();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpSetting = await prisma.systemSetting.findUnique({ where: { key: "requireOtpRegistration" } });
+    const requireOtp = otpSetting ? otpSetting.value === "true" : true;
 
-    const dbUser = await prisma.user.create({
-      data: { 
-        name, 
-        email, 
-        passwordHash, 
-        upiId: upiId || null,
-        otp,
-        otpExpires
-      },
-      select: { id: true, name: true, email: true, upiId: true, isAdmin: true, createdAt: true },
-    });
+    if (requireOtp) {
+      const otp = crypto.randomInt(100000, 999999).toString();
+      const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    await prisma.portfolio.create({
-      data: {
-        userId: dbUser.id,
-        cashBalance: 100000,
-      },
-    });
+      const dbUser = await prisma.user.create({
+        data: { name, email, passwordHash, upiId: upiId || null, otp, otpExpires },
+        select: { id: true, name: true, email: true, upiId: true, isAdmin: true, createdAt: true },
+      });
 
-    // Send OTP email
-    await sendOtpEmail(email, otp);
+      await prisma.portfolio.create({
+        data: { userId: dbUser.id, cashBalance: 100000 },
+      });
 
-    return NextResponse.json(
-      { success: true, email: dbUser.email, message: "Registration successful. Please check your email for the verification code." },
-      { status: 201 }
-    );
+      await sendOtpEmail(email, otp);
+
+      return NextResponse.json(
+        { success: true, email: dbUser.email, message: "Registration successful. Please check your email for the verification code." },
+        { status: 201 }
+      );
+    } else {
+      const dbUser = await prisma.user.create({
+        data: { name, email, passwordHash, upiId: upiId || null, emailVerified: true },
+        select: { id: true, name: true, email: true, upiId: true, isAdmin: true, createdAt: true },
+      });
+
+      await prisma.portfolio.create({
+        data: { userId: dbUser.id, cashBalance: 100000 },
+      });
+
+      const token = await signToken(dbUser.id);
+      const response = NextResponse.json(
+        { success: true, bypassedOtp: true, message: "Registration successful." },
+        { status: 201 }
+      );
+
+      response.cookies.set("invexto_token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60, // 7 days
+      });
+
+      return response;
+    }
   } catch (error) {
     console.error("Register error:", error);
     return NextResponse.json(

@@ -75,9 +75,15 @@ export async function POST(request: Request) {
         data: { userId: dbUser.id, cashBalance: 100000 },
       });
 
-      const token = await signToken(dbUser.id);
+      const token = await signToken({
+        userId: dbUser.id,
+        email: dbUser.email,
+        name: dbUser.name,
+        isAdmin: dbUser.isAdmin,
+      });
+      
       const response = NextResponse.json(
-        { success: true, bypassedOtp: true, message: "Registration successful." },
+        { success: true, data: { bypassedOtp: true }, message: "Registration successful." },
         { status: 201 }
       );
 

@@ -35,27 +35,30 @@ export async function GET(request: NextRequest) {
       prisma.user.count(),
     ]);
 
-    const data = users.map((u) => ({
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      upiId: u.upiId,
-      isAdmin: u.isAdmin,
-      createdAt: u.createdAt.toISOString(),
-      portfolio: u.portfolios[0]
-        ? {
-            cashBalance: Number(u.portfolios[0].cashBalance),
-            totalHoldings: u.portfolios[0]._count.holdings,
-            inTournament: u.portfolios[0].inTournament,
-          }
-        : null,
-      tournamentRegistrations: u.registrations.map((r) => ({
-        tournamentId: r.tournamentId,
-        registeredAt: r.registeredAt.toISOString(),
-        finalRank: r.finalRank,
-        prizeAmount: r.prizeAmount ? Number(r.prizeAmount) : null,
-      })),
-    }));
+    const data = users.map((u) => {
+      const activePortfolio = u.portfolios.find(p => p.inTournament) || u.portfolios[0];
+      return {
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        upiId: u.upiId,
+        isAdmin: u.isAdmin,
+        createdAt: u.createdAt.toISOString(),
+        portfolio: activePortfolio
+          ? {
+              cashBalance: Number(activePortfolio.cashBalance),
+              totalHoldings: activePortfolio._count?.holdings || 0,
+              inTournament: activePortfolio.inTournament,
+            }
+          : null,
+        tournamentRegistrations: u.registrations.map((r) => ({
+          tournamentId: r.tournamentId,
+          registeredAt: r.registeredAt.toISOString(),
+          finalRank: r.finalRank,
+          prizeAmount: r.prizeAmount ? Number(r.prizeAmount) : null,
+        })),
+      };
+    });
 
     return NextResponse.json({
       success: true,

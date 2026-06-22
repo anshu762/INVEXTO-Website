@@ -26,11 +26,11 @@ export default function AdminTournamentPage() {
   const [newStartDate, setNewStartDate] = useState("");
   const [newEndDate, setNewEndDate] = useState("");
   const [prizes, setPrizes] = useState({
-    "1": 500,
-    "2": 300,
-    "3": 150,
-    "4": 50,
-    "5": 25,
+    "1": 1000,
+    "2": 750,
+    "3": 500,
+    "4": 250,
+    "5": 250,
   });
 
   const fetchData = () => {

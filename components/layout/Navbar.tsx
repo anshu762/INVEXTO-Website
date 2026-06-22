@@ -41,20 +41,25 @@ export function Navbar() {
         {!loading && user ? (
           <>
             <div className="hidden items-center md:flex">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="relative flex h-9 w-24 items-center justify-center rounded-lg text-sm font-medium text-emerald-100/80 transition-colors hover:bg-emerald-800/50 hover:text-white"
-                >
-                  {link.label}
-                  {link.label === "Tournament" && tournamentActive && (
-                    <span className="absolute -right-0.5 -top-0.5 inline-flex items-center rounded bg-amber-500 px-1 py-0.5 text-[9px] font-bold leading-none text-white">
-                      LIVE
-                    </span>
-                  )}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const isTournament = link.label === "Tournament";
+                const LinkComponent = isTournament ? "a" : Link;
+                
+                return (
+                  <LinkComponent
+                    key={link.href}
+                    href={link.href}
+                    className="relative flex h-9 w-24 items-center justify-center rounded-lg text-sm font-medium text-emerald-100/80 transition-colors hover:bg-emerald-800/50 hover:text-white"
+                  >
+                    {link.label}
+                    {isTournament && tournamentActive && (
+                      <span className="absolute -right-0.5 -top-0.5 inline-flex items-center rounded bg-amber-500 px-1 py-0.5 text-[9px] font-bold leading-none text-white">
+                        LIVE
+                      </span>
+                    )}
+                  </LinkComponent>
+                );
+              })}
             </div>
 
             <div className="hidden items-center md:flex ml-4">
@@ -137,22 +142,27 @@ export function Navbar() {
       {!loading && user && mobileOpen && (
         <div className="border-t border-emerald-800/40 md:hidden">
           <div className="space-y-1 px-4 py-3">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-emerald-100/80 hover:bg-emerald-800/50 hover:text-white"
-              >
-                <link.icon className="h-4 w-4" />
-                {link.label}
-                {link.label === "Tournament" && tournamentActive && (
-                  <span className="ml-auto rounded bg-amber-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
-                    LIVE
-                  </span>
-                )}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isTournament = link.label === "Tournament";
+              const LinkComponent = isTournament ? "a" : Link;
+              
+              return (
+                <LinkComponent
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-emerald-100/80 hover:bg-emerald-800/50 hover:text-white"
+                >
+                  <link.icon className="h-4 w-4" />
+                  {link.label}
+                  {isTournament && tournamentActive && (
+                    <span className="ml-auto rounded bg-amber-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                      LIVE
+                    </span>
+                  )}
+                </LinkComponent>
+              );
+            })}
             {(user as any).isAdmin && (
               <Link
                 href="/admin"

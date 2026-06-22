@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { cookies } from "next/headers";
 import { Trophy, ArrowRight } from "lucide-react";
 import Link from "next/link";

@@ -201,7 +201,7 @@ export async function fetchHistoricalPrices(
 
   switch (range) {
     case "1d":
-      period1 = getLastTradingDay();
+      period1 = new Date(ist.getTime() - 5 * 24 * 60 * 60 * 1000); // Fetch 5 days and filter later to handle weekends/holidays/mornings
       interval = "5m";
       break;
     case "5d":
@@ -224,13 +224,20 @@ export async function fetchHistoricalPrices(
 
     if (range === "1d" || range === "5d") {
       const options: any = { period1, interval };
-      if (range === "1d" && isWeekend()) {
-        const p2 = new Date(period1);
-        p2.setHours(23, 59, 59, 999);
-        options.period2 = p2;
-      }
       const result = await yahooFinance.chart(symbol, options) as any;
       raw = result.quotes ?? [];
+
+      if (range === "1d" && raw.length > 0) {
+        // Filter to only the last calendar day present in the data
+        const lastQuote = raw[raw.length - 1];
+        const lastDate = new Date(lastQuote.date);
+        const lastDateString = lastDate.toISOString().split('T')[0];
+        
+        raw = raw.filter((q: any) => {
+          const qDate = new Date(q.date);
+          return qDate.toISOString().split('T')[0] === lastDateString;
+        });
+      }
     } else {
       const result = await yahooFinance.chart(symbol, {
         period1,

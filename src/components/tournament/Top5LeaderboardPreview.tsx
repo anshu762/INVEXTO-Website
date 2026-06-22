@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Trophy, ArrowRight } from "lucide-react";
+import { Trophy } from "lucide-react";
 import { formatINR } from "@/lib/format";
 import { useAuth } from "@/src/hooks/useAuth";
 
@@ -33,7 +33,7 @@ export function Top5LeaderboardPreview({ tournamentId }: Props) {
 
   const fetchLeaderboard = useCallback(async () => {
     try {
-      const res = await fetch(`/api/tournament/leaderboard/${tournamentId}`);
+      const res = await fetch(`/api/tournament/leaderboard/${tournamentId}?t=${Date.now()}`);
       const json = await res.json();
       if (json.success && json.data) {
         setData(json.data);
@@ -69,13 +69,6 @@ export function Top5LeaderboardPreview({ tournamentId }: Props) {
           <Trophy className="h-5 w-5 text-amber-400" />
           Top 5 Leaderboard
         </h3>
-        <Link
-          href={`/tournament/${tournamentId}/leaderboard`}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
-        >
-          View Full Leaderboard
-          <ArrowRight className="h-3 w-3" />
-        </Link>
       </div>
 
       {top5.length === 0 ? (

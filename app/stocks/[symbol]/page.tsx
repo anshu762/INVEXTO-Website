@@ -30,6 +30,7 @@ export default function StockDetailPage({
   const [tournamentCash, setTournamentCash] = useState(0);
   const [tournamentQty, setTournamentQty] = useState(0);
   const [tradeTarget, setTradeTarget] = useState<"normal" | "tournament">("normal");
+  const [userDataLoading, setUserDataLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const { user } = useAuth();
   const prevModalOpen = useRef(false);
@@ -58,8 +59,12 @@ export default function StockDetailPage({
   }, [symbol]);
 
   useEffect(() => {
-    if (!user || !symbol) return;
+    if (!user || !symbol) {
+      setUserDataLoading(false);
+      return;
+    }
     
+    setUserDataLoading(true);
     Promise.all([
       fetch(`/api/portfolio?mode=normal&t=${Date.now()}`).then(r => r.json()),
       fetch(`/api/tournament/active?t=${Date.now()}`).then(r => r.json()),
@@ -80,9 +85,14 @@ export default function StockDetailPage({
             if (holding) setTournamentQty(holding.quantity);
             else setTournamentQty(0);
           }
-        }).catch(() => {});
+        }).catch(() => {})
+          .finally(() => setUserDataLoading(false));
+      } else {
+        setUserDataLoading(false);
       }
-    }).catch(() => {});
+    }).catch(() => {
+      setUserDataLoading(false);
+    });
   }, [user, symbol, refreshKey]);
 
   if (loading || !symbol) {
@@ -164,25 +174,27 @@ export default function StockDetailPage({
             <div className="flex items-center gap-2">
               <Button
                 onClick={() => {
-                  setTradeTarget("normal");
+                  setTradeTarget(inTournament ? "tournament" : "normal");
                   setModalMode("buy");
                   setModalOpen(true);
                 }}
                 className="bg-emerald-500 text-white hover:bg-emerald-400"
+                disabled={userDataLoading}
               >
                 <ShoppingCart className="mr-1.5 h-4 w-4" />
-                Buy
+                {userDataLoading ? "Loading..." : "Buy"}
               </Button>
               <Button
                 onClick={() => {
-                  setTradeTarget("normal");
+                  setTradeTarget(inTournament ? "tournament" : "normal");
                   setModalMode("sell");
                   setModalOpen(true);
                 }}
                 variant="outline"
                 className="border-red-500/40 text-red-400 hover:bg-red-900/30"
+                disabled={userDataLoading}
               >
-                Sell
+                {userDataLoading ? "Loading..." : "Sell"}
               </Button>
             </div>
           )}
@@ -248,58 +260,30 @@ export default function StockDetailPage({
               <div className="flex flex-col gap-2">
                 <Button
                   onClick={() => {
-                    setTradeTarget("normal");
+                    setTradeTarget(inTournament ? "tournament" : "normal");
                     setModalMode("buy");
                     setModalOpen(true);
                   }}
                   className="w-full bg-emerald-500 text-white hover:bg-emerald-400"
-                  disabled={!user}
+                  disabled={!user || userDataLoading}
                 >
                   <ShoppingCart className="mr-1.5 h-4 w-4" />
-                  Buy {symbol.replace(".NS", "")}
+                  {userDataLoading ? "Loading..." : `Buy ${symbol.replace(".NS", "")}`}
                 </Button>
                 <Button
                   onClick={() => {
-                    setTradeTarget("normal");
+                    setTradeTarget(inTournament ? "tournament" : "normal");
                     setModalMode("sell");
                     setModalOpen(true);
                   }}
                   variant="outline"
                   className="w-full border-red-500/40 text-red-400 hover:bg-red-900/30"
-                  disabled={!user}
+                  disabled={!user || userDataLoading}
                 >
-                  Sell {symbol.replace(".NS", "")}
+                  {userDataLoading ? "Loading..." : `Sell ${symbol.replace(".NS", "")}`}
                 </Button>
                 
-                {inTournament && (
-                  <>
-                    <div className="my-2 border-t border-emerald-800/30" />
-                    <Button
-                      onClick={() => {
-                        setTradeTarget("tournament");
-                        setModalMode("buy");
-                        setModalOpen(true);
-                      }}
-                      className="w-full bg-amber-500 text-emerald-950 hover:bg-amber-400"
-                      disabled={!user}
-                    >
-                      <ShoppingCart className="mr-1.5 h-4 w-4" />
-                      Buy for Tournament
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setTradeTarget("tournament");
-                        setModalMode("sell");
-                        setModalOpen(true);
-                      }}
-                      variant="outline"
-                      className="w-full border-red-500/40 text-red-400 hover:bg-red-900/30"
-                      disabled={!user}
-                    >
-                      Sell for Tournament
-                    </Button>
-                  </>
-                )}
+
 
                 {!user && (
                   <p className="text-center text-xs text-muted-foreground">

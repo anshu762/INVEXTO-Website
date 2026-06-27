@@ -161,7 +161,7 @@ export default async function TournamentPage() {
           </div>
         ) : (
           <div className="grid gap-8 lg:grid-cols-5">
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-6 min-w-0">
               <div className="rounded-2xl border border-emerald-700/30 bg-emerald-900/30 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
@@ -202,7 +202,7 @@ export default async function TournamentPage() {
               </div>
             </div>
 
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-3 min-w-0">
               <Top5LeaderboardPreview tournamentId={data.tournament.id} />
             </div>
           </div>

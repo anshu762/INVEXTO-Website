@@ -208,7 +208,7 @@ export default function PortfolioPage() {
             </div>
 
             <div className="mb-6 grid gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-2 min-w-0">
                 <h2 className="mb-3 text-lg font-semibold text-foreground">
                   Holdings
                 </h2>
@@ -227,7 +227,7 @@ export default function PortfolioPage() {
                   }}
                 />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h2 className="mb-3 text-lg font-semibold text-foreground">
                   Allocation
                 </h2>

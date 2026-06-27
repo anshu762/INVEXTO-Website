@@ -127,7 +127,7 @@ export default function AdminTournamentPage() {
           <ArrowLeft className="h-4 w-4" />
           Back to Dashboard
         </Link>
-        <div className="mt-2 flex items-center justify-between gap-3">
+        <div className="mt-2 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Shield className="h-6 w-6 text-amber-400" />
             <div>
@@ -139,7 +139,7 @@ export default function AdminTournamentPage() {
           </div>
           <div className="flex flex-col gap-4">
             <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                 <input
                   type="date"
                   value={newStartDate}
@@ -159,7 +159,7 @@ export default function AdminTournamentPage() {
             </div>
             
             <div className="flex flex-col sm:flex-row items-end gap-4 rounded-xl border border-emerald-900/40 bg-emerald-950/20 p-4">
-              <div className="grid grid-cols-5 gap-2 w-full">
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 w-full">
                 {[1, 2, 3, 4, 5].map((rank) => (
                   <div key={rank} className="flex flex-col gap-1">
                     <label className="text-[10px] font-semibold text-emerald-500 uppercase tracking-wider">

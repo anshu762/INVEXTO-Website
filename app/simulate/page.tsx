@@ -171,7 +171,7 @@ export default function SimulatePage() {
       `}} />
       {showBanner && (
         <div className="bg-amber-900/30 border-b border-amber-700/30 px-4 py-3">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
+          <div className="mx-auto flex max-w-6xl flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-sm text-amber-300">
               <Gamepad2 className="h-4 w-4 shrink-0" />
               <span>
@@ -190,14 +190,14 @@ export default function SimulatePage() {
       )}
       {activeSim && state.phase === "idle" && (
         <div className="bg-red-900/30 border-b border-red-700/30 px-4 py-3">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
+          <div className="mx-auto flex max-w-6xl flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-sm text-red-300">
               <Gamepad2 className="h-4 w-4 shrink-0" />
               <span>
                 You have a simulation in progress. Resume or end it to start a new one.
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={async () => {
                   const endRes = await apiPost(`/api/simulations/${activeSim.eventId}/end`, {});

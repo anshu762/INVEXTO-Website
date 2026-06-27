@@ -76,7 +76,7 @@ export function Top5LeaderboardPreview({ tournamentId }: Props) {
           <p className="text-sm text-gray-500">No entries yet.</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-emerald-800/30 bg-gray-950/50">
+        <div className="overflow-x-auto rounded-xl border border-emerald-800/30 bg-gray-950/50">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-emerald-800/20 text-[10px] font-medium uppercase tracking-widest text-gray-500 bg-emerald-950/30">

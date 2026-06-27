@@ -31,8 +31,13 @@ function StatCard({ label, value, tooltip }: StatItem) {
         </span>
         <Tooltip>
           <TooltipTrigger asChild>
-            <button type="button" className="text-muted-foreground/50 hover:text-muted-foreground">
-              <Info className="h-3 w-3" />
+            <button 
+              type="button" 
+              className="-m-2 p-2 text-muted-foreground/50 transition-colors hover:text-muted-foreground active:text-foreground"
+              onClick={(e) => e.preventDefault()}
+              onPointerDown={(e) => e.preventDefault()}
+            >
+              <Info className="h-3.5 w-3.5" />
             </button>
           </TooltipTrigger>
           <TooltipContent side="top" className="max-w-[200px] text-xs">

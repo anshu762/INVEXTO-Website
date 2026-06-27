@@ -228,15 +228,22 @@ export async function fetchHistoricalPrices(
       raw = result.quotes ?? [];
 
       if (range === "1d" && raw.length > 0) {
-        // Filter to only the last calendar day present in the data
-        const lastQuote = raw[raw.length - 1];
-        const lastDate = new Date(lastQuote.date);
-        const lastDateString = lastDate.toISOString().split('T')[0];
+        // First filter out any invalid quotes that have no close price
+        const validQuotes = raw.filter((q: any) => q && q.close != null);
         
-        raw = raw.filter((q: any) => {
-          const qDate = new Date(q.date);
-          return qDate.toISOString().split('T')[0] === lastDateString;
-        });
+        if (validQuotes.length > 0) {
+          // Find the last valid date
+          const lastQuote = validQuotes[validQuotes.length - 1];
+          const lastDate = new Date(lastQuote.date);
+          const lastDateString = lastDate.toISOString().split('T')[0];
+          
+          raw = validQuotes.filter((q: any) => {
+            const qDate = new Date(q.date);
+            return qDate.toISOString().split('T')[0] === lastDateString;
+          });
+        } else {
+          raw = [];
+        }
       }
     } else {
       const result = await yahooFinance.chart(symbol, {
@@ -271,10 +278,15 @@ export async function fetchHistoricalPrices(
 
     historyCache.set(cacheKey, prices, HISTORY_TTL);
 
+    let actualChartDate = period1.toISOString();
+    if (prices.length > 0) {
+      actualChartDate = prices[prices.length - 1].timestamp;
+    }
+
     return {
       prices,
       isWeekend: isWeekend(),
-      chartDate: period1.toISOString(),
+      chartDate: actualChartDate,
     };
   } catch (err) {
     let raw: any[] = [];

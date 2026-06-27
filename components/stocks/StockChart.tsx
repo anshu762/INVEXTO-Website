@@ -69,6 +69,59 @@ export function StockChart({
     return v.toString();
   };
 
+  const renderStatusText = () => {
+    if (range !== "1d" || !chartDate) return null;
+
+    const now = new Date();
+    const istTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+    const todayStr = istTime.toLocaleDateString("en-IN");
+    
+    const cDateObj = new Date(chartDate);
+    const cIstTime = new Date(cDateObj.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+    const cDateStr = cIstTime.toLocaleDateString("en-IN");
+    
+    const hours = istTime.getHours();
+    const minutes = istTime.getMinutes();
+    const day = istTime.getDay();
+    const isWeekendNow = day === 0 || day === 6;
+    
+    const isMarketOpen = 
+      !isWeekendNow && 
+      ((hours > 9 || (hours === 9 && minutes >= 15)) && 
+       (hours < 15 || (hours === 15 && minutes <= 30)));
+
+    if (todayStr === cDateStr) {
+      if (isMarketOpen) {
+        return (
+          <p className="mt-3 flex items-center justify-center text-[11px] font-medium text-emerald-400">
+            <span className="relative mr-2 flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+            </span>
+            Live (Today)
+          </p>
+        );
+      } else {
+        return (
+          <p className="mt-3 text-center text-[11px] font-medium text-muted-foreground">
+            Today (Market Closed)
+          </p>
+        );
+      }
+    } else {
+      const formattedDate = cIstTime.toLocaleDateString("en-IN", { 
+        weekday: "short", 
+        month: "short", 
+        day: "numeric" 
+      });
+      return (
+        <p className="mt-3 text-center text-[11px] font-medium text-muted-foreground">
+          Showing data for {formattedDate} — Market Closed
+        </p>
+      );
+    }
+  };
+
   return (
     <div className="rounded-xl border border-emerald-800/30 bg-emerald-900/20 p-4">
       <div className="mb-4 flex items-center gap-1">
@@ -146,11 +199,8 @@ export function StockChart({
           </ResponsiveContainer>
         </div>
       )}
-      {isWeekend && range === "1d" && (
-        <p className="mt-2 text-center text-[11px] text-muted-foreground/60">
-          Showing {chartDate ? new Date(chartDate).toLocaleDateString("en-IN", { weekday: "long", month: "short", day: "numeric" }) : "latest"}&apos;s data — market is closed on weekends
-        </p>
-      )}
+      
+      {renderStatusText()}
     </div>
   );
 }

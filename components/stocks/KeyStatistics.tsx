@@ -25,23 +25,18 @@ interface KeyStatisticsProps {
 }
 
 function StatCard({ label, value, tooltip }: StatItem) {
-  const [open, setOpen] = useState(false);
-
   return (
     <div className="rounded-lg border border-emerald-800/30 bg-emerald-900/20 p-3">
       <div className="flex items-center gap-1">
         <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
           {label}
         </span>
-        <Tooltip open={open} onOpenChange={setOpen}>
+        <Tooltip>
           <TooltipTrigger asChild>
             <button 
               type="button" 
               className="-m-2 p-2 text-muted-foreground/50 transition-colors hover:text-muted-foreground active:text-foreground"
-              onClick={(e) => {
-                e.preventDefault();
-                setOpen(!open);
-              }}
+              onClick={(e) => e.preventDefault()}
             >
               <Info className="h-3.5 w-3.5" />
             </button>

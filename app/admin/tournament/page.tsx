@@ -23,6 +23,10 @@ export default function AdminTournamentPage() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [closingId, setClosingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [editStartDate, setEditStartDate] = useState("");
+  const [editEndDate, setEditEndDate] = useState("");
   const [newStartDate, setNewStartDate] = useState("");
   const [newEndDate, setNewEndDate] = useState("");
   const [prizes, setPrizes] = useState({
@@ -93,6 +97,29 @@ export default function AdminTournamentPage() {
       toast.error("Failed to close tournament");
     } finally {
       setClosingId(null);
+    }
+  };
+
+  const handleUpdateDates = async (id: string) => {
+    setUpdatingId(id);
+    try {
+      const res = await fetch("/api/admin/tournament", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tournamentId: id, startDate: editStartDate, endDate: editEndDate }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast.success("Tournament dates updated!");
+        setEditingId(null);
+        fetchData();
+      } else {
+        toast.error(json.error);
+      }
+    } catch {
+      toast.error("Failed to update tournament dates");
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -210,10 +237,29 @@ export default function AdminTournamentPage() {
               <div className="grid gap-4 sm:grid-cols-3">
                 <div>
                   <p className="text-xs text-muted-foreground">Period</p>
-                  <p className="text-sm font-medium text-foreground">
-                    {new Date(activeTournament.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} —{" "}
-                    {new Date(activeTournament.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                  </p>
+                  {editingId === activeTournament.id ? (
+                    <div className="mt-1 flex flex-col gap-2">
+                      <input
+                        type="date"
+                        value={editStartDate}
+                        onChange={(e) => setEditStartDate(e.target.value)}
+                        className="w-full rounded-lg border border-amber-800/30 bg-amber-950/30 px-3 py-1.5 text-xs text-foreground outline-none"
+                        style={{ colorScheme: "dark" }}
+                      />
+                      <input
+                        type="date"
+                        value={editEndDate}
+                        onChange={(e) => setEditEndDate(e.target.value)}
+                        className="w-full rounded-lg border border-amber-800/30 bg-amber-950/30 px-3 py-1.5 text-xs text-foreground outline-none"
+                        style={{ colorScheme: "dark" }}
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-sm font-medium text-foreground mt-1">
+                      {new Date(activeTournament.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} —{" "}
+                      {new Date(activeTournament.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Registrations</p>
@@ -228,7 +274,42 @@ export default function AdminTournamentPage() {
                   </p>
                 </div>
               </div>
-              <div className="mt-4 flex justify-end">
+              <div className="mt-4 flex justify-end gap-2">
+                {editingId === activeTournament.id ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingId(null)}
+                      className="border-amber-800/30 bg-transparent text-amber-500 hover:bg-amber-950/30 hover:text-amber-400"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => handleUpdateDates(activeTournament.id)}
+                      disabled={updatingId === activeTournament.id}
+                      className="bg-amber-600 text-white hover:bg-amber-500"
+                    >
+                      {updatingId === activeTournament.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      Save Dates
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setEditingId(activeTournament.id);
+                      setEditStartDate(activeTournament.startDate.split("T")[0]);
+                      setEditEndDate(activeTournament.endDate.split("T")[0]);
+                    }}
+                    className="border-amber-800/30 bg-transparent text-amber-500 hover:bg-amber-950/30 hover:text-amber-400"
+                  >
+                    Edit Dates
+                  </Button>
+                )}
                 <Button
                   variant="destructive"
                   size="sm"

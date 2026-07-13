@@ -83,3 +83,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Failed to create tournament", details: err.message }, { status: 500 });
   }
 }
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const user = await requireSession(request);
+    if (!(user as any).isAdmin) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
+
+    const body = await request.json().catch(() => ({}));
+    if (!body.tournamentId || (!body.startDate && !body.endDate)) {
+      return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
+    }
+
+    const dataToUpdate: any = {};
+    if (body.startDate) dataToUpdate.startDate = new Date(body.startDate);
+    if (body.endDate) dataToUpdate.endDate = new Date(body.endDate);
+
+    const tournament = await prisma.tournament.update({
+      where: { id: body.tournamentId },
+      data: dataToUpdate,
+    });
+
+    return NextResponse.json({ success: true, data: tournament });
+  } catch (err: any) {
+    console.error("[Update Tournament Error]", err);
+    if (err instanceof NextResponse) return err;
+    return NextResponse.json({ success: false, error: "Failed to update tournament", details: err.message }, { status: 500 });
+  }
+}

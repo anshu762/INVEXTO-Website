@@ -48,14 +48,28 @@ export default function StockDetailPage({
 
   useEffect(() => {
     if (!symbol) return;
-    setLoading(true);
-    fetch(`/api/stocks/${encodeURIComponent(symbol)}`)
-      .then((r) => r.json())
-      .then((json) => {
-        if (json.success) setStock(json.data);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    let isMounted = true;
+
+    const fetchStock = async (showLoading = false) => {
+      if (showLoading) setLoading(true);
+      try {
+        const r = await fetch(`/api/stocks/${encodeURIComponent(symbol)}`);
+        const json = await r.json();
+        if (json.success && isMounted) setStock(json.data);
+      } catch (e) {
+        // ignore
+      } finally {
+        if (showLoading && isMounted) setLoading(false);
+      }
+    };
+
+    fetchStock(true);
+    const intervalId = setInterval(() => fetchStock(false), 15000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
   }, [symbol]);
 
   useEffect(() => {

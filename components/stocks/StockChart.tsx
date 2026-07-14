@@ -29,18 +29,35 @@ export function StockChart({
   const [chartDate, setChartDate] = useState("");
 
   useEffect(() => {
-    setLoading(true);
-    fetch(`/api/stocks/${encodeURIComponent(symbol)}/prices?range=${range}`)
-      .then((r) => r.json())
-      .then((json) => {
-        if (json.success) {
+    let isMounted = true;
+
+    const fetchChart = async (showLoading = false) => {
+      if (showLoading) setLoading(true);
+      try {
+        const r = await fetch(`/api/stocks/${encodeURIComponent(symbol)}/prices?range=${range}&t=${Date.now()}`);
+        const json = await r.json();
+        if (json.success && isMounted) {
           setData(json.data || []);
           setIsWeekend(json.isWeekend || false);
           setChartDate(json.chartDate || "");
         }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      } catch (e) {
+        // ignore
+      } finally {
+        if (showLoading && isMounted) setLoading(false);
+      }
+    };
+
+    fetchChart(true);
+
+    const intervalId = setInterval(() => {
+      if (range === "1d") fetchChart(false);
+    }, 15000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
   }, [symbol, range]);
 
   const isUp =

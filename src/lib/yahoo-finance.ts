@@ -11,8 +11,9 @@ const multiHistoryCache = new TTLMap<any>();
 const searchCache = new TTLMap<any[]>();
 const newsCache = new TTLMap<any[]>();
 
-const QUOTE_TTL = 30_000;
+const QUOTE_TTL = 15_000;
 const HISTORY_TTL = 300_000;
+const HISTORY_TTL_1D = 15_000;
 const SEARCH_TTL = 60_000;
 const NEWS_TTL = 1_800_000;
 
@@ -276,7 +277,7 @@ export async function fetchHistoricalPrices(
         volume: Number(r.volume ?? 0),
       }));
 
-    historyCache.set(cacheKey, prices, HISTORY_TTL);
+    historyCache.set(cacheKey, prices, range === "1d" ? HISTORY_TTL_1D : HISTORY_TTL);
 
     let actualChartDate = period1.toISOString();
     if (prices.length > 0) {
@@ -308,7 +309,7 @@ export async function fetchHistoricalPrices(
         price: Number(r.close),
         volume: Number(r.volume)
       }));
-      historyCache.set(cacheKey, prices, HISTORY_TTL);
+      historyCache.set(cacheKey, prices, range === "1d" ? HISTORY_TTL_1D : HISTORY_TTL);
       return { prices, isWeekend: isWeekend(), chartDate: period1.toISOString() };
     }
     return { prices: [], isWeekend: isWeekend(), chartDate: new Date().toISOString() };

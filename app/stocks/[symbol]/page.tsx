@@ -14,6 +14,40 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { formatINR, formatPercent, formatMarketCap, formatVolume } from "@/lib/format";
 import type { StockDetail } from "@/src/types";
 
+function AnimatedPrice({ price }: { price: number }) {
+  const [flash, setFlash] = useState<"up" | "down" | null>(null);
+  const prevPriceRef = useRef(price);
+
+  useEffect(() => {
+    if (price > prevPriceRef.current) {
+      setFlash("up");
+    } else if (price < prevPriceRef.current) {
+      setFlash("down");
+    }
+    prevPriceRef.current = price;
+
+    const timer = setTimeout(() => {
+      setFlash(null);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [price]);
+
+  return (
+    <span
+      className={`text-4xl font-bold transition-colors duration-500 ${
+        flash === "up"
+          ? "text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.8)]"
+          : flash === "down"
+          ? "text-red-400 drop-shadow-[0_0_12px_rgba(248,113,113,0.8)]"
+          : "text-foreground"
+      }`}
+    >
+      {formatINR(price)}
+    </span>
+  );
+}
+
 export default function StockDetailPage({
   params,
 }: {
@@ -217,9 +251,7 @@ export default function StockDetailPage({
 
 
         <div className="flex flex-wrap items-baseline gap-3">
-          <span className="text-4xl font-bold text-foreground">
-            {formatINR(stock.currentPrice)}
-          </span>
+          <AnimatedPrice price={stock.currentPrice} />
           <span
             className={`flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium ${
               isUp
@@ -245,7 +277,7 @@ export default function StockDetailPage({
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <StockChart symbol={symbol} initialColor={isUp ? "emerald" : "red"} />
+            <StockChart symbol={symbol} initialColor={isUp ? "emerald" : "red"} currentPrice={stock.currentPrice} />
           </div>
           <div className="space-y-4">
             <div className="rounded-xl border border-emerald-800/30 bg-emerald-900/20 p-4">

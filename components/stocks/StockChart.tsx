@@ -16,11 +16,13 @@ import type { PricePoint } from "@/src/types";
 interface StockChartProps {
   symbol: string;
   initialColor?: "emerald" | "red";
+  currentPrice?: number;
 }
 
 export function StockChart({
   symbol,
   initialColor = "emerald",
+  currentPrice,
 }: StockChartProps) {
   const [range, setRange] = useState("1d");
   const [data, setData] = useState<PricePoint[]>([]);
@@ -85,6 +87,20 @@ export function StockChart({
     if (v >= 1000) return `${(v / 1000).toFixed(1)}K`;
     return v.toString();
   };
+
+  const displayData = [...data];
+  if (range === "1d" && currentPrice !== undefined && displayData.length > 0) {
+    const lastPointTime = new Date(displayData[displayData.length - 1].timestamp).getTime();
+    const nowTime = Date.now();
+    // Append current price if it's newer than the last chart point
+    if (nowTime > lastPointTime) {
+      displayData.push({
+        timestamp: new Date().toISOString(),
+        price: currentPrice,
+        volume: 0,
+      });
+    }
+  }
 
   const renderStatusText = () => {
     if (range !== "1d" || !chartDate) return null;
@@ -162,7 +178,7 @@ export function StockChart({
 
       {loading ? (
         <Skeleton className="h-72 w-full bg-emerald-800/30" />
-      ) : data.length === 0 ? (
+      ) : displayData.length === 0 ? (
         <div className="flex h-72 items-center justify-center">
           <p className="text-sm text-muted-foreground">
             No chart data available for this period
@@ -171,7 +187,7 @@ export function StockChart({
       ) : (
         <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
+            <LineChart data={displayData}>
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="oklch(0.3 0.02 160 / 0.3)"
